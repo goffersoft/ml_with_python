@@ -1,0 +1,23 @@
+import numpy
+data = numpy.loadtxt('resources/data/ex1data1.txt', delimiter=',')
+
+import matplotlib.pyplot as plt
+
+plt.plot(data[:,0], data[:,1], marker='o')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.title('Title')
+
+plt.show()
+plt.scatter(data[:,0], data[:,1])
+plt.show()
+
+O1 = numpy.ones(shape=(numpy.shape(X)[0],1)
+X1=numpy.reshape(X, (len(X),1))
+X2=numpy.append(O1, X1, 1)
+theta=numpy.reshape([1.0, 2.0], (2,1))
+
+//liearly space arg1 to arg2 for arg3 times
+numpy.linspace(-1,4,100)
+
+numpy.matmul(thetat, X2[1])
