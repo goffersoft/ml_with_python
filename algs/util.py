@@ -45,13 +45,41 @@ def get_data_as_matrix(path, caller_path=None, delimiter=','):
     if err:
         raise FileNotFoundError(err)
 
-    data = np.loadtxt(file_path, delimiter=delimiter)
+    dataset = np.loadtxt(file_path, delimiter=delimiter)
 
-    mrows, ncols = np.shape(data)
+    mrows, ncols = np.shape(dataset)
 
-    return data, mrows, ncols
+    return dataset, mrows, ncols
+
+
+def iterate_matrix(data_matrix, rstart, rend, col_range_list):
+    """Get columns as a list for the specified rows in the matrix.
+
+    rstart = first row
+    rend = last row (not inlcuded)
+    col_range_list = list or tuple of lists or tuples
+    example : ((c1start, c1 end), ..., (cnstart, cnend))
+    cnstart = first col
+    cnend = last col (not included)
+    """
+    for row in range(rstart, rend):
+        yield [[data_matrix[row, col] for col in range(cstart, cend)]
+               for cstart, cend in col_range_list]
 
 
 if __name__ == '__main__':
-    pause()
-    pause('Presss Any Key')
+    DATASET = 'gd/resources/data/ex1data1.txt'
+    print()
+    print(f'First 10 Examples of the dataset: {DATASET}')
+    data, _, _ = get_data_as_matrix(DATASET, Path(__file__))
+    print('\n'.join(f'X={i}, y={j}'
+                    for i, j in
+                    iterate_matrix(data, 0, 10, ((0, 1), (1, 2)))))
+
+    DATASET = 'gd/resources/data/ex1data2.txt'
+    print()
+    print(f'First 10 Examples of the dataset: {DATASET}')
+    data, _, _ = get_data_as_matrix(DATASET, Path(__file__))
+    print('\n'.join(f'X={i}, y={j}'
+                    for i, j in
+                    iterate_matrix(data, 0, 10, ((0, 2), (2, 3)))))
