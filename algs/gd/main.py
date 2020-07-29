@@ -14,6 +14,7 @@ try:
     from .plotdata import surface_plot
     from .plotdata import close_plot
     from .gradient_descent import gradient_descent
+    from .gradient_descent import normal_equation
     from .compute_cost import compute_cost
 except ImportError:
     import os
@@ -31,6 +32,7 @@ except ImportError:
     from plotdata import surface_plot
     from plotdata import close_plot
     from gradient_descent import gradient_descent
+    from gradient_descent import normal_equation
     from compute_cost import compute_cost
 
 
@@ -96,8 +98,9 @@ def plot_dataset(feature_matrix, output_colvec, num_features,
 def run_gradient_descent(feature_matrix, output_colvec,
                          num_examples, num_features,
                          alpha, num_iters, fig, subplot,
-                         theta_colvec=None, debug=False):
-    """Gradient Descent.
+                         theta_colvec=None, normal_eq=False,
+                         debug=False):
+    """Run Gradient Descent/Normal Equation.
 
     1) num_examples - number of training samples
     2) num_features - number of features
@@ -114,13 +117,18 @@ def run_gradient_descent(feature_matrix, output_colvec,
     if not theta_colvec:
         theta_colvec = np.zeros(shape=(num_features + 1, 1))
 
-    theta_colvec, cost_hist = \
-        gradient_descent(feature_matrix, output_colvec,
-                         num_examples, num_features,
-                         alpha, num_iters, theta_colvec,
-                         debug)
-
-    print(f'Theta found by gradient descent: {theta_colvec}')
+    cost_hist = None
+    if normal_eq:
+        theta_colvec = \
+            normal_equation(feature_matrix, output_colvec)
+        print(f'Theta found by normal equation : {theta_colvec}')
+    else:
+        theta_colvec, cost_hist = \
+            gradient_descent(feature_matrix, output_colvec,
+                             num_examples, num_features,
+                             alpha, num_iters, theta_colvec,
+                             debug)
+        print(f'Theta found by gradient descent: {theta_colvec}')
 
     if num_features == 1:
         line_plot(feature_matrix[:, 1],
@@ -214,7 +222,8 @@ def run_cost_analysis(feature_matrix, output_colvec,
 def run_dataset(dataset_name, dataset_title,
                 dataset_xlabel='X', dataset_ylabel='Y',
                 normalize=False, print_data=False,
-                predict_func=None):
+                predict_func=None,
+                normal_eq=False):
     """Run Various Stages."""
     _, features, output, \
         sample_count, feature_count, mu_rowvec, sigma_rowvec = \
@@ -230,7 +239,9 @@ def run_dataset(dataset_name, dataset_title,
                              sample_count, feature_count,
                              alpha=0.01, num_iters=1500,
                              fig=fig, subplot=subplot,
-                             theta_colvec=None, debug=True)
+                             theta_colvec=None,
+                             normal_eq=normal_eq,
+                             debug=True)
 
     if predict_func:
         if normalize:
@@ -259,6 +270,12 @@ def run():
                 dataset_title='Gradient Descent - Housing Prices - '
                               'Multi-Variable',
                 predict_func=predict_dataset2)
+
+    run_dataset('resources/data/ex1data2.txt', print_data=True, normalize=True,
+                dataset_title='Normal Equation - Housing Prices - '
+                              'Multi-Variable',
+                predict_func=predict_dataset2,
+                normal_eq=True)
 
 
 if __name__ == '__main__':

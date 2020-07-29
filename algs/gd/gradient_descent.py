@@ -71,6 +71,17 @@ def gradient_descent(feature_matrix, output_colvec,
     return theta_colvec, cost_hist
 
 
+def normal_equation(feature_matrix, output_colvec):
+    """Run Gradient Descent using the Normal Equation."""
+    fm_transpose_fm = \
+        np.matmul(feature_matrix.transpose(), feature_matrix)
+    fm_transpose_fm_pinv = np.linalg.pinv(fm_transpose_fm)
+    fm_transpose_output_colvec = \
+        np.matmul(feature_matrix.transpose(), output_colvec)
+
+    return np.matmul(fm_transpose_fm_pinv, fm_transpose_output_colvec)
+
+
 if __name__ == '__main__':
     DATASET = 'resources/data/ex1data1.txt'
     print(f'Gradient Descent For Dataset : {DATASET}')
@@ -85,7 +96,7 @@ if __name__ == '__main__':
         gradient_descent(features, output, mrows, ncols - 1,
                          theta_colvec=np.zeros(shape=(ncols, 1)),
                          alpha=0.01, num_iters=1500, debug=True)
-    print(f'theta={theta}')
+    print(f'theta(Gradient Descent)={theta}')
     print(f'cost_history={cost_history}')
     print(f'{"*" * 80}')
 
@@ -104,6 +115,11 @@ if __name__ == '__main__':
         gradient_descent(features, output, mrows, ncols - 1,
                          theta_colvec=np.zeros(shape=(ncols, 1)),
                          alpha=0.01, num_iters=1500, debug=True)
-    print(f'theta={theta}')
+    print(f'theta(Gradient Descent)={theta}')
     print(f'cost_history={cost_history}')
+    print(f'{"*" * 80}')
+
+    theta = \
+        normal_equation(features, output)
+    print(f'theta (Normal Equation)={theta}')
     print(f'{"*" * 80}')
