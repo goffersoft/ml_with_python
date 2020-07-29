@@ -73,7 +73,8 @@ def load_data(dataset, normalize=False, print_data=False):
         nrows, ncols - 1, mu_rowvec, sigma_rowvec
 
 
-def plot_data(feature_matrix, output_colvec, num_features):
+def plot_dataset(feature_matrix, output_colvec, num_features,
+                 dataset_title, dataset_xlabel='X', dataset_ylabel='Y'):
     """Plot data as a scatter diagram."""
     fig = None
     subplot = None
@@ -81,9 +82,9 @@ def plot_data(feature_matrix, output_colvec, num_features):
         print('Plotting Data ...')
         fig, subplot = \
             scatter_plot(feature_matrix[:, 1], output_colvec,
-                         xlabel='Population of City in 10,000s',
-                         ylabel='Profit in $10,000s',
-                         title='Gradient Descent',
+                         xlabel=dataset_xlabel,
+                         ylabel=dataset_ylabel,
+                         title=dataset_title,
                          marker='o', color='r',
                          legend_label='Training data')
 
@@ -126,28 +127,44 @@ def run_gradient_descent(feature_matrix, output_colvec,
                   np.matmul(feature_matrix, theta_colvec),
                   marker='x', legend_label='Linear regression',
                   color='b', fig=fig, subplot=subplot)
-#   Predict values for population sizes of 35,000 and 70,000
-        predict1 = np.matmul(np.reshape([1, 3.5],
-                                        newshape=(1, num_features + 1)),
-                             theta_colvec)
-        print('For population = 35,000, '
-              f'we predict a profit of {predict1[0, 0]*10000}')
-
-        predict2 = np.matmul(np.reshape([1, 7],
-                                        newshape=(1, num_features + 1)),
-                             theta_colvec)
-        print('For population = 70,000, '
-              f'we predict a profit of {predict2[0, 0]*10000}')
-
-    util.pause('Program paused. Press enter to continue.')
+        util.pause('Program paused. Press enter to continue.')
 
     return theta_colvec, cost_hist
 
 
+def predict_dataset1(theta_colvec, num_features):
+    """Predict profits based on the trained theta vals."""
+    predict1 = np.matmul(np.reshape([1, 3.5],
+                                    newshape=(1, num_features + 1)),
+                         theta_colvec)
+    print('For population = 35,000, '
+          f'we predict a profit of {predict1[0, 0]*10000}')
+
+    predict2 = np.matmul(np.reshape([1, 7],
+                                    newshape=(1, num_features + 1)),
+                         theta_colvec)
+    print('For population = 70,000, '
+          f'we predict a profit of {predict2[0, 0]*10000}')
+
+    util.pause('Program paused. Press enter to continue.')
+
+
+def predict_dataset2(theta_colvec, num_features, mu_rowvec, sigma_rowvec):
+    """Predict profits based on the trained theta vals."""
+    num_bedrooms = (3 - mu_rowvec[0, 1])/sigma_rowvec[0, 1]
+    sq_footage = (1650 - mu_rowvec[0, 0])/sigma_rowvec[0, 0]
+    predict1 = np.matmul(np.reshape([1, num_bedrooms, sq_footage],
+                                    newshape=(1, num_features + 1)),
+                         theta_colvec)
+    print('For a 1650 sq-ft 3 br house, '
+          f'we predict an estmated house price of {predict1[0, 0]}')
+
+    util.pause('Program paused. Press enter to continue.')
+
+
 def run_cost_analysis(feature_matrix, output_colvec,
-                      num_features,
-                      theta_colvec,
-                      cost_hist):
+                      num_features, theta_colvec, cost_hist,
+                      dataset_title):
     """Visualize Cost data using contour and sureface plots."""
 
     def get_z_values(theta0, theta1):
@@ -157,12 +174,13 @@ def run_cost_analysis(feature_matrix, output_colvec,
     if cost_hist is not None:
         fig, subplot = \
             line_plot(np.reshape(
-                [i for i in range(1, np.size(cost_hist) + 1)],
+                range(1, np.size(cost_hist) + 1),
                 newshape=(np.size(cost_hist), 1)),
                       cost_hist,
                       xlabel='Number Of Iterations',
                       ylabel='Cost J',
-                      marker='x', title='Convergence Graph',
+                      marker='x',
+                      title=f'{dataset_title}\nConvergence Graph',
                       color='b')
         util.pause('Program paused. Press enter to continue.')
         close_plot(fig)
@@ -175,6 +193,7 @@ def run_cost_analysis(feature_matrix, output_colvec,
     theta1_vals = np.linspace(-1, 4, 100)
 
     fig, subplot = surface_plot(theta0_vals, theta1_vals, get_z_values,
+                                title=dataset_title,
                                 xlabel='theta_0',
                                 ylabel='theta_1')
     util.pause('Program paused. Press enter to continue.')
@@ -182,22 +201,29 @@ def run_cost_analysis(feature_matrix, output_colvec,
 
     fig, subplot = contour_plot(theta0_vals, theta1_vals,
                                 get_z_values,
+                                title=dataset_title,
                                 levels=np.logspace(-2, 3, 20))
     fig, subplot = line_plot(theta_colvec[0], theta_colvec[1],
                              marker='x', color='r',
+                             title=dataset_title,
                              fig=fig, subplot=subplot)
     util.pause('Program paused. Press enter to continue.')
     return fig, subplot
 
 
-def run_dataset(dataset_name, normalize=False, print_data=False):
+def run_dataset(dataset_name, dataset_title,
+                dataset_xlabel='X', dataset_ylabel='Y',
+                normalize=False, print_data=False,
+                predict_func=None):
     """Run Various Stages."""
     _, features, output, \
-        sample_count, feature_count, _, _ = \
+        sample_count, feature_count, mu_rowvec, sigma_rowvec = \
         load_data(dataset_name, normalize, print_data)
 
     fig, subplot = \
-        plot_data(features, output, feature_count)
+        plot_dataset(features, output, feature_count,
+                     dataset_title, dataset_xlabel,
+                     dataset_ylabel)
 
     theta_colvec, cost_hist = \
         run_gradient_descent(features, output,
@@ -206,17 +232,33 @@ def run_dataset(dataset_name, normalize=False, print_data=False):
                              fig=fig, subplot=subplot,
                              theta_colvec=None, debug=True)
 
+    if predict_func:
+        if normalize:
+            predict_func(theta_colvec, feature_count,
+                         mu_rowvec, sigma_rowvec)
+        else:
+            predict_func(theta_colvec, feature_count)
+
     fig1, _ = run_cost_analysis(features, output, feature_count,
-                                theta_colvec, cost_hist)
+                                theta_colvec, cost_hist, dataset_title)
 
     close_plot(fig)
     close_plot(fig1)
 
 
 def run():
-    """Run Various Stages."""
-    run_dataset('resources/data/ex1data1.txt', print_data=True)
-    run_dataset('resources/data/ex1data2.txt', print_data=True, normalize=True)
+    """Run Gradient Descent against various datasets."""
+    run_dataset('resources/data/ex1data1.txt', print_data=True,
+                dataset_title='Gradient Descent - Population Dataset - '
+                              'Single-Variable',
+                dataset_xlabel='Population of City in 10,000s',
+                dataset_ylabel='Profit in $10,000s',
+                predict_func=predict_dataset1)
+
+    run_dataset('resources/data/ex1data2.txt', print_data=True, normalize=True,
+                dataset_title='Gradient Descent - Housing Prices - '
+                              'Multi-Variable',
+                predict_func=predict_dataset2)
 
 
 if __name__ == '__main__':
