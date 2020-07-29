@@ -36,7 +36,7 @@ def compute_cost(feature_matrix, output_colvec, theta_colvec):
 #   Vectorized Implementation
     cost_colvec = np.matmul(feature_matrix, theta_colvec) - output_colvec
     return (np.matmul(cost_colvec.transpose(),
-                      cost_colvec)/(2*num_examples))[0][0]
+                      cost_colvec)/(2*num_examples))[0, 0]
 
 
 def compute_cost_given_hypothesis(hypothesis_colvec,
