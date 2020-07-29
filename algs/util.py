@@ -52,7 +52,8 @@ def get_data_as_matrix(path, caller_path=None, delimiter=','):
     return dataset, nrows, ncols
 
 
-def iterate_matrix(data_matrix, rstart, rend, col_range_list):
+def iterate_matrix(data_matrix, rstart=None, rend=None,
+                   col_range_list=None):
     """Get columns as a list for the specified rows in the matrix.
 
     rstart = first row
@@ -62,6 +63,13 @@ def iterate_matrix(data_matrix, rstart, rend, col_range_list):
     cnstart = first col
     cnend = last col (not included)
     """
+    if rstart is None or rend is None or rstart >= rend:
+        rstart = 0
+        rend = np.shape(data_matrix)[0]
+
+    if not col_range_list:
+        col_range_list = ((0, np.shape(data_matrix)[1]))
+
     for row in range(rstart, rend):
         yield [[data_matrix[row, col] for col in range(cstart, cend)]
                for cstart, cend in col_range_list]
