@@ -7,7 +7,8 @@ import numpy as np
 
 try:
     from .. import util
-    from .compute_cost import compute_cost_given_hypothesis
+#    from .compute_cost import compute_cost_given_hypothesis
+    from .compute_cost import compute_cost_given_cost
 except (ImportError, ValueError):
     import os
     import sys
@@ -18,7 +19,8 @@ except (ImportError, ValueError):
     currentdir = os.path.dirname(abspath)
     parentdir = os.path.dirname(currentdir)
     sys.path.insert(0, parentdir)
-    from compute_cost import compute_cost_given_hypothesis
+#    from compute_cost import compute_cost_given_hypothesis
+    from compute_cost import compute_cost_given_cost
     import util
 
 
@@ -39,50 +41,69 @@ def gradient_descent(feature_matrix, output_colvec,
         cost_hist = None
 
     if theta_colvec is None:
-        theta_colvec = np.zeros(shape=(num_features, 1))
+        theta_colvec = np.zeros(shape=(num_features + 1, 1))
 
-    hypothesis_colvec = np.zeros(shape=(num_examples, 1))
+#    hypothesis_colvec = np.zeros(shape=(num_examples, 1))
 
-    theta_colvec = theta_colvec.transpose()
-
+#    theta_colvec = theta_colvec.transpose()
+#
     for iter_num in range(0, num_iters):
-        for i in range(0, num_examples):
-            hypothesis_colvec[i, 0] = \
-                np.matmul(theta_colvec,
-                          np.reshape(feature_matrix[i, :],
-                                     newshape=(num_features, 1)))
-        for i in range(0, num_features):
-            theta_colvec[0, i] -= \
-                alpha * \
-                ((np.sum((hypothesis_colvec - output_colvec) *
-                         np.reshape(feature_matrix[:, i],
-                                    newshape=(num_examples, 1))))/num_examples)
+        # for i in range(0, num_examples):
+        #    hypothesis_colvec[i, 0] = \
+        #        np.matmul(theta_colvec,
+        #                  feature_matrix[i:i+1, :].transpose())
+        # for i in range(0, num_features + 1):
+        #    theta_colvec[0, i] -= \
+        #        alpha * \
+        #            ((np.sum((hypothesis_colvec - output_colvec) *
+        #             feature_matrix[:, i:i+1]))/num_examples)
+
+        # Vectorized Implementation
+        cost_colvec = np.matmul(feature_matrix, theta_colvec) - output_colvec
+        theta_colvec = theta_colvec - \
+            (alpha*np.matmul(feature_matrix.transpose(),
+                             cost_colvec))/num_examples
 
         if debug:
             cost_hist[iter_num, 0] = \
-                compute_cost_given_hypothesis(hypothesis_colvec,
-                                              output_colvec,
-                                              num_examples)
+                compute_cost_given_cost(cost_colvec, num_examples)
 
-    return theta_colvec.transpose(), cost_hist
+    return theta_colvec, cost_hist
 
 
 if __name__ == '__main__':
+    DATASET = 'resources/data/ex1data1.txt'
+    print(f'Gradient Descent For Dataset : {DATASET}')
     data, mrows, ncols = util.\
-        get_data_as_matrix('resources/data/ex1data1.txt', Path(__file__))
+        get_data_as_matrix(DATASET, Path(__file__))
 
-    output = np.reshape(data[:, ncols - 1], newshape=(mrows, 1))
+    output = data[:, ncols - 1:ncols]
     features = np.append(np.ones(shape=(mrows, 1)),
-                         np.reshape(data[:, 0], newshape=(mrows, ncols - 1)),
+                         data[:, 0:ncols - 1],
                          axis=1)
     theta, cost_history = \
-        gradient_descent(features, output, mrows, ncols,
+        gradient_descent(features, output, mrows, ncols - 1,
                          theta_colvec=np.zeros(shape=(ncols, 1)),
                          alpha=0.01, num_iters=1500, debug=True)
-    print(theta)
-    print(cost_history)
+    print(f'theta={theta}')
+    print(f'cost_history={cost_history}')
+    print(f'{"*" * 80}')
+
+    DATASET = 'resources/data/ex1data2.txt'
+    print(f'Gradient Descent For Dataset : {DATASET}')
+    data, mrows, ncols = util.\
+        get_data_as_matrix(DATASET, Path(__file__))
+
+    util.normalize_data(data[:, 0:ncols - 1])
+
+    output = data[:, ncols - 1:ncols]
+    features = np.append(np.ones(shape=(mrows, 1)),
+                         data[:, 0:ncols - 1],
+                         axis=1)
     theta, cost_history = \
-        gradient_descent(features, output, mrows, ncols,
-                         alpha=0.01, num_iters=1500, debug=False)
-    print(theta)
-    print(cost_history)
+        gradient_descent(features, output, mrows, ncols - 1,
+                         theta_colvec=np.zeros(shape=(ncols, 1)),
+                         alpha=0.01, num_iters=1500, debug=True)
+    print(f'theta={theta}')
+    print(f'cost_history={cost_history}')
+    print(f'{"*" * 80}')

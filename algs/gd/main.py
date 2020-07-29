@@ -34,77 +34,106 @@ except ImportError:
     from compute_cost import compute_cost
 
 
-def load_data(path):
-    """Part 1: Get Data."""
-    print(f'Loading Data from file... {path}')
-    return util.get_data_as_matrix(path, Path(__file__))
+def load_data(dataset, normalize=False, print_data=False):
+    """Get Data."""
+    print(f'Loading Data from file... {dataset}')
+    data, nrows, ncols = util.get_data_as_matrix(dataset, Path(__file__))
 
+    mu_rowvec = None
+    sigma_rowvec = None
 
-def prepare_data_for_gradient_descent(data, mrows, ncols):
-    """Plot and Prepare Data For Gradient Descent."""
-    print('Plotting Data ...')
+    if print_data:
+        print('First 10 Examples of the dataset:')
+        print('\n'.join(f'feature_matrix_row={i}, output={j}'
+                        for i, j in
+                        util.iterate_matrix(data, 0, 10,
+                                            ((0, ncols - 1),
+                                             (ncols - 1, ncols)))))
 
-    feature_matrix = np.append(np.ones(shape=(mrows, 1)),
-                               np.reshape(data[:, 0],
-                                          newshape=(mrows, ncols - 1)),
+    if normalize:
+        _, mu_rowvec, sigma_rowvec = \
+            util.normalize_data(data[:, 0:np.shape(data)[1] - 1])
+
+        if print_data:
+            print(f'mu={mu_rowvec}')
+            print(f'sigma={sigma_rowvec}')
+            print('First 10 Examples of the dataset (After Normalization):')
+            print('\n'.join(f'feature_matrix_row={i}, output={j}'
+                            for i, j in
+                            util.iterate_matrix(data, 0, 10,
+                                                ((0, ncols - 1),
+                                                 (ncols - 1, ncols)))))
+
+    feature_matrix = np.append(np.ones(shape=(nrows, 1)),
+                               data[:, 0:ncols - 1],
                                axis=1)
-    output_colvec = np.reshape(data[:, ncols - 1], newshape=(mrows, 1))
+    output_colvec = np.reshape(data[:, ncols - 1], newshape=(nrows, 1))
 
-    fig, subplot = scatter_plot(feature_matrix[:, 1], output_colvec,
-                                xlabel='Population of City in 10,000s',
-                                ylabel='Profit in $10,000s',
-                                title='Gradient Descent',
-                                marker='o', color='r',
-                                legend_label='Training data')
+    return data, feature_matrix, output_colvec, \
+        nrows, ncols - 1, mu_rowvec, sigma_rowvec
+
+
+def plot_data(feature_matrix, output_colvec, num_features):
+    """Plot data as a scatter diagram."""
+    fig = None
+    subplot = None
+    if num_features == 1:
+        print('Plotting Data ...')
+        fig, subplot = \
+            scatter_plot(feature_matrix[:, 1], output_colvec,
+                         xlabel='Population of City in 10,000s',
+                         ylabel='Profit in $10,000s',
+                         title='Gradient Descent',
+                         marker='o', color='r',
+                         legend_label='Training data')
 
     util.pause('Program paused. Press enter to continue.\n')
 
-    return feature_matrix, output_colvec, mrows, ncols, fig, subplot
+    return fig, subplot
 
 
 def run_gradient_descent(feature_matrix, output_colvec,
                          num_examples, num_features,
                          alpha, num_iters, fig, subplot,
                          theta_colvec=None, debug=False):
-    """Part 3: Gradient Descent.
+    """Gradient Descent.
 
     1) num_examples - number of training samples
-    2) num_features - number of features (including the all ones first row)
-    3) feature_matrix - m,n col vector
-    4) output_colvec - m,1 col vector
+    2) num_features - number of features
+    3) feature_matrix - num_examples x (num_features + 1)
+    4) output_colvec - num_examples x 1 col vector
     5) alpha - alpha value for gradient descent
     6) num_iters - number of iterations
-    7) theta_colvec - initial values of theta
+    7) theta_colvec - (num_features + 1) x 1 col vector
+                      initial values of theta
     8) debug - print debug info
     """
     print('Running Gradient Descent ...')
 
     if not theta_colvec:
-        theta_colvec = np.zeros(shape=(num_features, 1))
+        theta_colvec = np.zeros(shape=(num_features + 1, 1))
 
     theta_colvec, jhist = gradient_descent(feature_matrix, output_colvec,
                                            num_examples, num_features,
                                            alpha, num_iters, theta_colvec,
                                            debug)
 
-    print('Theta found by gradient descent: '
-          f'{theta_colvec[0]}, {theta_colvec[1]}')
+    print(f'Theta found by gradient descent: {theta_colvec}')
 
-    line_plot(feature_matrix[:, 1],
-              np.matmul(feature_matrix, theta_colvec),
-              marker='x', legend_label='Linear regression',
-              color='b', fig=fig, subplot=subplot)
-
+    if num_features == 1:
+        line_plot(feature_matrix[:, 1],
+                  np.matmul(feature_matrix, theta_colvec),
+                  marker='x', legend_label='Linear regression',
+                  color='b', fig=fig, subplot=subplot)
 #   Predict values for population sizes of 35,000 and 70,000
-    if num_features == 2:
         predict1 = np.matmul(np.reshape([1, 3.5],
-                                        newshape=(1, num_features)),
+                                        newshape=(1, num_features + 1)),
                              theta_colvec)
         print('For population = 35,000, '
               f'we predict a profit of {predict1[0, 0]*10000}')
 
         predict2 = np.matmul(np.reshape([1, 7],
-                                        newshape=(1, num_features)),
+                                        newshape=(1, num_features + 1)),
                              theta_colvec)
         print('For population = 70,000, '
               f'we predict a profit of {predict2[0, 0]*10000}')
@@ -115,17 +144,16 @@ def run_gradient_descent(feature_matrix, output_colvec,
 
 
 def run_cost_analysis(feature_matrix, output_colvec,
-                      num_examples, num_features,
+                      num_features,
                       theta_colvec):
     """Visualize Cost data using contour and sureface plots."""
 
     def get_z_values(theta0, theta1):
         return compute_cost(feature_matrix, output_colvec,
-                            num_examples, num_features,
                             np.reshape([theta0, theta1], newshape=(2, 1)))
 
-    if num_features > 2:
-        print('Cost analysis only supported for 2 features!!')
+    if num_features > 1:
+        print('Cost analysis only supported for 1 features!!')
         return None, None
 
     theta0_vals = np.linspace(-10, 10, 100)
@@ -146,12 +174,14 @@ def run_cost_analysis(feature_matrix, output_colvec,
     return fig, subplot
 
 
-def run():
+def run_dataset(dataset_name, normalize=False, print_data=False):
     """Run Various Stages."""
-    data, mrows, ncols = load_data('resources/data/ex1data1.txt')
+    _, features, output, \
+        sample_count, feature_count, _, _ = \
+        load_data(dataset_name, normalize, print_data)
 
-    features, output, sample_count, feature_count, fig, subplot = \
-        prepare_data_for_gradient_descent(data, mrows, ncols)
+    fig, subplot = \
+        plot_data(features, output, feature_count)
 
     theta_colvec, _ = \
         run_gradient_descent(features, output,
@@ -160,11 +190,17 @@ def run():
                              fig=fig, subplot=subplot,
                              theta_colvec=None, debug=True)
 
-    fig1, _ = run_cost_analysis(features, output, sample_count,
+    fig1, _ = run_cost_analysis(features, output,
                                 feature_count, theta_colvec)
 
     close_plot(fig)
     close_plot(fig1)
+
+
+def run():
+    """Run Various Stages."""
+    run_dataset('resources/data/ex1data1.txt', print_data=True)
+    run_dataset('resources/data/ex1data2.txt', print_data=True, normalize=True)
 
 
 if __name__ == '__main__':
