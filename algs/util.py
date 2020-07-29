@@ -47,9 +47,9 @@ def get_data_as_matrix(path, caller_path=None, delimiter=','):
 
     dataset = np.loadtxt(file_path, delimiter=delimiter)
 
-    mrows, ncols = np.shape(dataset)
+    nrows, ncols = np.shape(dataset)
 
-    return dataset, mrows, ncols
+    return dataset, nrows, ncols
 
 
 def iterate_matrix(data_matrix, rstart, rend, col_range_list):
@@ -65,6 +65,29 @@ def iterate_matrix(data_matrix, rstart, rend, col_range_list):
     for row in range(rstart, rend):
         yield [[data_matrix[row, col] for col in range(cstart, cend)]
                for cstart, cend in col_range_list]
+
+
+def normalize_data(data_matrix):
+    """Normalize data.
+
+    data_matrix -> nrows X ncols
+    Normlization involves
+    1) Computing the mean (m) for each column -> 1 x ncols
+    2) Computing the standard devistion (s) for each column -> 1 x ncols
+    3) for elemnt(i, j) -> e(i, j) -> e(i, j) = (e(i, j) - m(0, j))/s(0, j)
+    """
+    ncols = np.shape(data_matrix)[1]
+
+    mu_rowvec = np.zeros(shape=(1, ncols))
+    sigma_rowvec = np.zeros(shape=(1, ncols))
+
+    for col in range(0, ncols):
+        mu_rowvec[0, col] = np.mean(data_matrix[:, col])
+        sigma_rowvec[0, col] = np.std(data_matrix[:, col])
+        data_matrix[:, col] = \
+            (data_matrix[:, col] - mu_rowvec[0, col])/sigma_rowvec[0, col]
+
+    return data_matrix, mu_rowvec, sigma_rowvec
 
 
 if __name__ == '__main__':
