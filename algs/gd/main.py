@@ -113,10 +113,11 @@ def run_gradient_descent(feature_matrix, output_colvec,
     if not theta_colvec:
         theta_colvec = np.zeros(shape=(num_features + 1, 1))
 
-    theta_colvec, jhist = gradient_descent(feature_matrix, output_colvec,
-                                           num_examples, num_features,
-                                           alpha, num_iters, theta_colvec,
-                                           debug)
+    theta_colvec, cost_hist = \
+        gradient_descent(feature_matrix, output_colvec,
+                         num_examples, num_features,
+                         alpha, num_iters, theta_colvec,
+                         debug)
 
     print(f'Theta found by gradient descent: {theta_colvec}')
 
@@ -140,20 +141,34 @@ def run_gradient_descent(feature_matrix, output_colvec,
 
     util.pause('Program paused. Press enter to continue.')
 
-    return theta_colvec, jhist
+    return theta_colvec, cost_hist
 
 
 def run_cost_analysis(feature_matrix, output_colvec,
                       num_features,
-                      theta_colvec):
+                      theta_colvec,
+                      cost_hist):
     """Visualize Cost data using contour and sureface plots."""
 
     def get_z_values(theta0, theta1):
         return compute_cost(feature_matrix, output_colvec,
                             np.reshape([theta0, theta1], newshape=(2, 1)))
 
+    if cost_hist is not None:
+        fig, subplot = \
+            line_plot(np.reshape(
+                [i for i in range(1, np.size(cost_hist) + 1)],
+                newshape=(np.size(cost_hist), 1)),
+                      cost_hist,
+                      xlabel='Number Of Iterations',
+                      ylabel='Cost J',
+                      marker='x', title='Convergence Graph',
+                      color='b')
+        util.pause('Program paused. Press enter to continue.')
+        close_plot(fig)
+
     if num_features > 1:
-        print('Cost analysis only supported for 1 features!!')
+        print('Detailed Cost analysis only supported for 1 features!!')
         return None, None
 
     theta0_vals = np.linspace(-10, 10, 100)
@@ -164,6 +179,7 @@ def run_cost_analysis(feature_matrix, output_colvec,
                                 ylabel='theta_1')
     util.pause('Program paused. Press enter to continue.')
     close_plot(fig)
+
     fig, subplot = contour_plot(theta0_vals, theta1_vals,
                                 get_z_values,
                                 levels=np.logspace(-2, 3, 20))
@@ -183,15 +199,15 @@ def run_dataset(dataset_name, normalize=False, print_data=False):
     fig, subplot = \
         plot_data(features, output, feature_count)
 
-    theta_colvec, _ = \
+    theta_colvec, cost_hist = \
         run_gradient_descent(features, output,
                              sample_count, feature_count,
                              alpha=0.01, num_iters=1500,
                              fig=fig, subplot=subplot,
                              theta_colvec=None, debug=True)
 
-    fig1, _ = run_cost_analysis(features, output,
-                                feature_count, theta_colvec)
+    fig1, _ = run_cost_analysis(features, output, feature_count,
+                                theta_colvec, cost_hist)
 
     close_plot(fig)
     close_plot(fig1)
