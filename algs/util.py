@@ -52,7 +52,8 @@ def get_data_as_matrix(path, caller_path=None, delimiter=','):
     return dataset, nrows, ncols
 
 
-def iterate_matrix(data_matrix, rstart=None, rend=None,
+def iterate_matrix(data_matrix,
+                   row_range_list=None,
                    col_range_list=None):
     """Get columns as a list for the specified rows in the matrix.
 
@@ -63,16 +64,19 @@ def iterate_matrix(data_matrix, rstart=None, rend=None,
     cnstart = first col
     cnend = last col (not included)
     """
-    if rstart is None or rend is None or rstart >= rend:
-        rstart = 0
-        rend = np.shape(data_matrix)[0]
+    if not row_range_list:
+        row_range_list = ((0, np.shape(data_matrix)[0]))
 
     if not col_range_list:
         col_range_list = ((0, np.shape(data_matrix)[1]))
 
-    for row in range(rstart, rend):
-        yield [[data_matrix[row, col] for col in range(cstart, cend)]
-               for cstart, cend in col_range_list]
+    for rstart, rend in row_range_list:
+        for row in range(rstart, rend):
+            output = [row]
+            output.extend([[data_matrix[row, col]
+                            for col in range(col_start, col_end)]
+                           for col_start, col_end in col_range_list])
+            yield output
 
 
 def normalize_data(data_matrix):
@@ -99,18 +103,39 @@ def normalize_data(data_matrix):
 
 
 if __name__ == '__main__':
-    DATASET = 'gd/resources/data/ex1data1.txt'
-    print()
-    print(f'First 10 Examples of the dataset: {DATASET}')
+    DATASET = 'gd/resources/data/city_dataset_97_2.txt'
+    print(f"{'*'*80}")
+    print(f'First 10 rows of the dataset: {DATASET}')
     data, _, _ = get_data_as_matrix(DATASET, Path(__file__))
-    print('\n'.join(f'X={i}, y={j}'
-                    for i, j in
-                    iterate_matrix(data, 0, 10, ((0, 1), (1, 2)))))
+    print('\n'.join(f'rownum={i} : feature_matrix_row={j}, : '
+                    f'output_row={k}'
+                    for i, j, k in
+                    iterate_matrix(data, ((0, 10),), ((0, 1), (1, 2)))))
 
-    DATASET = 'gd/resources/data/ex1data2.txt'
-    print()
-    print(f'First 10 Examples of the dataset: {DATASET}')
+    DATASET = 'gd/resources/data/housing_dataset_47_3.txt'
+    print(f"{'*'*80}")
+    print(f'First 10 rows of the dataset: {DATASET}')
     data, _, _ = get_data_as_matrix(DATASET, Path(__file__))
-    print('\n'.join(f'X={i}, y={j}'
+    print('\n'.join(f'rownum={i} : feature_matrix_row={j}, : '
+                    f'output_row={k}'
+                    for i, j, k in
+                    iterate_matrix(data, ((0, 10),), ((0, 2), (2, 3)))))
+
+    print(f"{'*'*80}")
+    print(f'Rows 5 thru 10 of the dataset: {DATASET}')
+    data, _, _ = get_data_as_matrix(DATASET, Path(__file__))
+    print('\n'.join(f'rownum={i} : feature_matrix_row={j}, : '
+                    f'output_row={k}'
+                    for i, j, k in
+                    iterate_matrix(data, ((1, 2), (5, 10)), ((0, 2), (2, 3)))))
+
+    print(f"{'*'*80}")
+    print('Rows 1 and Rows 5 thru 10 of the '
+          f'dataset-using enumerate: {DATASET}')
+    data, _, _ = get_data_as_matrix(DATASET, Path(__file__))
+    print('\n'.join(f'index={i} : rownum={j[0]} : feature_matrix_row={j[1]} : '
+                    f'output_row={j[2]}'
                     for i, j in
-                    iterate_matrix(data, 0, 10, ((0, 2), (2, 3)))))
+                    enumerate(iterate_matrix(data,
+                                             ((1, 2), (5, 10)),
+                                             ((0, 2), (2, 3))))))
