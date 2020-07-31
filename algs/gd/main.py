@@ -89,8 +89,9 @@ def plot_dataset(feature_matrix, output_colvec, num_features,
                          xlabel=dataset_xlabel,
                          ylabel=dataset_ylabel,
                          title=dataset_title,
-                         marker='o', color='r',
-                         legend_label='Training data')
+                         marker='.', color='r',
+                         linewidths=0.02,
+                         label='Training data')
 
     util.pause('Program paused. Press enter to continue.\n')
 
@@ -135,8 +136,9 @@ def run_gradient_descent(feature_matrix, output_colvec,
     if num_features == 1:
         line_plot(feature_matrix[:, 1],
                   np.matmul(feature_matrix, theta_colvec),
-                  marker='x', legend_label='Linear regression',
-                  color='b', fig=fig, subplot=subplot)
+                  marker='x', label='Linear regression',
+                  color='b', markersize=2,
+                  fig=fig, subplot=subplot)
         util.pause('Program paused. Press enter to continue.')
 
     return theta_colvec, cost_hist
@@ -189,7 +191,7 @@ def run_cost_analysis(feature_matrix, output_colvec,
                       cost_hist,
                       xlabel='Number Of Iterations',
                       ylabel='Cost J',
-                      marker='x',
+                      marker='x', markersize=2,
                       title=f'{dataset_title}\nConvergence Graph',
                       color='b')
         util.pause('Program paused. Press enter to continue.')
@@ -226,7 +228,7 @@ def run_dataset(dataset_name, dataset_title,
                 normalize=False, print_data=False,
                 predict_func=None,
                 normal_eq=False):
-    """Run Various Stages."""
+    """Run Gradient Descent."""
     _, features, output, \
         sample_count, feature_count, mu_rowvec, sigma_rowvec = \
         load_data(dataset_name, normalize, print_data)

@@ -28,9 +28,10 @@ def close_plot(fig=None):
 
 
 def set_plot_attributes(xlabel=None, ylabel=None,
-                        title=None, legend_label=None,
-                        projection=None,
-                        fig=None, subplot=None):
+                        title=None, projection=None,
+                        fig=None, subplot=None,
+                        subplot_nrows=1, subplot_ncols=1,
+                        subplot_index=1):
     """Set attributes for the specified plot.
 
     If an existing figure is passed in, it is used
@@ -51,7 +52,6 @@ def set_plot_attributes(xlabel=None, ylabel=None,
     xlabel = label for the X-Axis
     ylabel = label for the Y-Axis
     title = title for the subplot
-    legend_title = label for the plot within this sub-plot
     """
     if not fig:
         enable_interactive_mode()
@@ -61,16 +61,14 @@ def set_plot_attributes(xlabel=None, ylabel=None,
         params_list = {}
         if projection:
             params_list['projection'] = projection
-        subplot = fig.add_subplot(**params_list)
+        subplot = fig.add_subplot(subplot_nrows, subplot_ncols,
+                                  subplot_index, **params_list)
 
     if xlabel:
         subplot.set_xlabel(xlabel)
 
     if ylabel:
         subplot.set_ylabel(ylabel)
-
-    if legend_label:
-        subplot.set_label(legend_label)
 
     if title:
         subplot.set_title(title)
@@ -80,9 +78,13 @@ def set_plot_attributes(xlabel=None, ylabel=None,
 
 def line_plot(xaxis_data, yaxis_data,
               xlabel=None, ylabel=None,
-              title=None, legend_label=None,
+              title=None, label=None,
               marker=None, color=None,
-              fig=None, subplot=None):
+              linewidth=None,
+              markersize=None,
+              fig=None, subplot=None,
+              subplot_nrows=1, subplot_ncols=1,
+              subplot_index=1):
     """Line Plot within the figure.
 
     If an existing figure is passed in, it is used
@@ -103,14 +105,16 @@ def line_plot(xaxis_data, yaxis_data,
     xlabel = label for the X-Axis
     ylabel = label for the Y-Axis
     title = title for the subplot
-    legend_title = label for the plot within this sub-plot
+    label = label for the plot within this sub-plot
     xaxis_data = 1-D array
     yaxis_data = 1-D array
     color = color to use for the plot
     marker = marker to use for the data points
     """
     fig, subplot = set_plot_attributes(xlabel, ylabel, title,
-                                       legend_label, None, fig, subplot)
+                                       None, fig, subplot,
+                                       subplot_nrows, subplot_ncols,
+                                       subplot_index)
 
     params_list = {}
 
@@ -120,16 +124,31 @@ def line_plot(xaxis_data, yaxis_data,
     if color:
         params_list['color'] = color
 
+    if linewidth:
+        params_list['linewidth'] = linewidth
+
+    if markersize:
+        params_list['markersize'] = markersize
+
+    if label:
+        params_list['label'] = label
+
     subplot.plot(xaxis_data, yaxis_data, **params_list)
+
+    if label:
+        subplot.legend()
 
     return fig, subplot
 
 
 def scatter_plot(xaxis_data, yaxis_data,
                  xlabel=None, ylabel=None,
-                 title=None, legend_label=None,
+                 title=None, label=None,
                  marker=None, color=None,
-                 fig=None, subplot=None):
+                 linewidths=None,
+                 fig=None, subplot=None,
+                 subplot_nrows=1, subplot_ncols=1,
+                 subplot_index=1):
     """Scatter Plot within the figure.
 
     If an existing figure is passed in, it is used
@@ -150,14 +169,16 @@ def scatter_plot(xaxis_data, yaxis_data,
     xaxis_data = 1-D array
     yaxis_data = 1-D array
     title = title for the subplot
-    legend_title = label for the plot within this sub-plot
+    legend = label for the plot within this sub-plot
     xlabel = label for the X-Axis
     ylabel = label for the Y-Axis
     color = color to use for the plot
     marker = marker to use for the data points
     """
     fig, subplot = set_plot_attributes(xlabel, ylabel, title,
-                                       legend_label, None, fig, subplot)
+                                       None, fig, subplot,
+                                       subplot_nrows, subplot_ncols,
+                                       subplot_index)
 
     params_list = {}
 
@@ -167,7 +188,16 @@ def scatter_plot(xaxis_data, yaxis_data,
     if color:
         params_list['color'] = color
 
+    if linewidths:
+        params_list['linewidths'] = linewidths
+
+    if label:
+        params_list['label'] = label
+
     subplot.scatter(xaxis_data, yaxis_data, **params_list)
+
+    if label:
+        subplot.legend()
 
     return fig, subplot
 
@@ -175,8 +205,9 @@ def scatter_plot(xaxis_data, yaxis_data,
 def contour_plot(xaxis_data, yaxis_data,
                  compute_zaxis_data_func, levels=None,
                  xlabel=None, ylabel=None,
-                 title=None, legend_label=None,
-                 fig=None, subplot=None):
+                 title=None, fig=None, subplot=None,
+                 subplot_nrows=1, subplot_ncols=1,
+                 subplot_index=1):
     """Plot input data as a contour plot.
 
     If an existing figure is passed in, it is used
@@ -199,12 +230,13 @@ def contour_plot(xaxis_data, yaxis_data,
     zaxis_data = 2-D array
     levels = number and positions of the contour lines/regions
     title = title for the subplot
-    legend_title = label for the plot within this sub-plot
     xlabel = label for the X-Axis
     ylabel = label for the Y-Axis
     """
     fig, subplot = set_plot_attributes(xlabel, ylabel, title,
-                                       legend_label, None, fig, subplot)
+                                       None, fig, subplot,
+                                       subplot_nrows, subplot_ncols,
+                                       subplot_index)
 
     nrows = np.size(xaxis_data)
     ncols = np.size(yaxis_data)
@@ -214,17 +246,22 @@ def contour_plot(xaxis_data, yaxis_data,
          for i in range(0, nrows) for j in range(0, ncols)],
         newshape=(nrows, ncols))
 
+    params_list = {}
+    if levels is not None:
+        params_list['levels'] = levels
+
     # need to transpose cost matrix or else axis gets flipped
     subplot.contour(xaxis_data, yaxis_data,
-                    zaxis_data.transpose(), levels=levels)
+                    zaxis_data.transpose(), **params_list)
 
     return fig, subplot
 
 
 def surface_plot(xaxis_data, yaxis_data, compute_zaxis_data_func,
                  xlabel=None, ylabel=None,
-                 title=None, legend_label=None,
-                 fig=None, subplot=None):
+                 title=None, fig=None, subplot=None,
+                 subplot_nrows=1, subplot_ncols=1,
+                 subplot_index=1):
     """Plot input data as a 3-D Surface plot.
 
     If an existing figure is passed in, it is used
@@ -246,12 +283,13 @@ def surface_plot(xaxis_data, yaxis_data, compute_zaxis_data_func,
     yaxis_data = 1-D array
     zaxis_data = 2-D array
     title = title for the subplot
-    legend_title = label for the plot within this sub-plot
     xlabel = label for the X-Axis
     ylabel = label for the Y-Axis
     """
     fig, subplot = set_plot_attributes(xlabel, ylabel, title,
-                                       legend_label, '3d', fig, subplot)
+                                       '3d', fig, subplot,
+                                       subplot_nrows, subplot_ncols,
+                                       subplot_index)
 
     nrows = np.size(xaxis_data)
     ncols = np.size(yaxis_data)
