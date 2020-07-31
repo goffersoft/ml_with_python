@@ -8,11 +8,11 @@ import numpy as np
 
 try:
     from .. import util
-    from .plotdata import line_plot
-    from .plotdata import scatter_plot
-    from .plotdata import contour_plot
-    from .plotdata import surface_plot
-    from .plotdata import close_plot
+    from ..plot_util import line_plot
+    from ..plot_util import scatter_plot
+    from ..plot_util import contour_plot
+    from ..plot_util import surface_plot
+    from ..plot_util import close_plot
     from .gradient_descent import gradient_descent
     from .gradient_descent import normal_equation
     from .compute_cost import compute_cost
@@ -26,11 +26,11 @@ except ImportError:
     parentdir = os.path.dirname(currentdir)
     sys.path.insert(0, parentdir)
     import util
-    from plotdata import line_plot
-    from plotdata import scatter_plot
-    from plotdata import contour_plot
-    from plotdata import surface_plot
-    from plotdata import close_plot
+    from plot_util import line_plot
+    from plot_util import scatter_plot
+    from plot_util import contour_plot
+    from plot_util import surface_plot
+    from plot_util import close_plot
     from gradient_descent import gradient_descent
     from gradient_descent import normal_equation
     from compute_cost import compute_cost
