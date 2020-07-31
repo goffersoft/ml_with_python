@@ -85,15 +85,15 @@ def normal_equation(feature_matrix, output_colvec):
 if __name__ == '__main__':
     DATASET = 'resources/data/city_dataset_97_2.txt'
     print(f'Gradient Descent For Dataset : {DATASET}')
-    data, mrows, ncols = util.\
+    data, nrows, ncols = util.\
         get_data_as_matrix(DATASET, Path(__file__))
 
     output = data[:, ncols - 1:ncols]
-    features = np.append(np.ones(shape=(mrows, 1)),
+    features = np.append(np.ones(shape=(nrows, 1)),
                          data[:, 0:ncols - 1],
                          axis=1)
     theta, cost_history = \
-        gradient_descent(features, output, mrows, ncols - 1,
+        gradient_descent(features, output, nrows, ncols - 1,
                          theta_colvec=np.zeros(shape=(ncols, 1)),
                          alpha=0.01, num_iters=1500, debug=True)
     print(f'theta(Gradient Descent)={theta}')
@@ -102,17 +102,17 @@ if __name__ == '__main__':
 
     DATASET = 'resources/data/housing_dataset_47_3.txt'
     print(f'Gradient Descent For Dataset : {DATASET}')
-    data, mrows, ncols = util.\
+    data, nrows, ncols = util.\
         get_data_as_matrix(DATASET, Path(__file__))
 
     util.normalize_data(data[:, 0:ncols - 1])
 
     output = data[:, ncols - 1:ncols]
-    features = np.append(np.ones(shape=(mrows, 1)),
+    features = np.append(np.ones(shape=(nrows, 1)),
                          data[:, 0:ncols - 1],
                          axis=1)
     theta, cost_history = \
-        gradient_descent(features, output, mrows, ncols - 1,
+        gradient_descent(features, output, nrows, ncols - 1,
                          theta_colvec=np.zeros(shape=(ncols, 1)),
                          alpha=0.01, num_iters=1500, debug=True)
     print(f'theta(Gradient Descent)={theta}')

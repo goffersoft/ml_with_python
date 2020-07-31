@@ -77,11 +77,11 @@ if __name__ == '__main__':
         import util
 
     DATASET = 'resources/data/city_dataset_97_2.txt'
-    data, mrows, ncols = util.\
+    data, nrows, ncols = util.\
         get_data_as_matrix(DATASET, Path(__file__))
 
     output = data[:, ncols - 1:ncols]
-    features = np.append(np.ones(shape=(mrows, 1)),
+    features = np.append(np.ones(shape=(nrows, 1)),
                          data[:, 0:ncols - 1], axis=1)
     cost = compute_cost(features, output, np.zeros(shape=(ncols, 1)))
     print(cost)
