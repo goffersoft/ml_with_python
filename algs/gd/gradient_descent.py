@@ -83,7 +83,7 @@ def normal_equation(feature_matrix, output_colvec):
 
 
 if __name__ == '__main__':
-    DATASET = 'resources/data/ex1data1.txt'
+    DATASET = 'resources/data/city_dataset_97_2.txt'
     print(f'Gradient Descent For Dataset : {DATASET}')
     data, mrows, ncols = util.\
         get_data_as_matrix(DATASET, Path(__file__))
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     print(f'cost_history={cost_history}')
     print(f'{"*" * 80}')
 
-    DATASET = 'resources/data/ex1data2.txt'
+    DATASET = 'resources/data/housing_dataset_47_3.txt'
     print(f'Gradient Descent For Dataset : {DATASET}')
     data, mrows, ncols = util.\
         get_data_as_matrix(DATASET, Path(__file__))

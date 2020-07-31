@@ -76,8 +76,9 @@ if __name__ == '__main__':
         sys.path.insert(0, parentdir)
         import util
 
+    DATASET = 'resources/data/city_dataset_97_2.txt'
     data, mrows, ncols = util.\
-        get_data_as_matrix('resources/data/ex1data1.txt', Path(__file__))
+        get_data_as_matrix(DATASET, Path(__file__))
 
     output = data[:, ncols - 1:ncols]
     features = np.append(np.ones(shape=(mrows, 1)),
