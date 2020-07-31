@@ -45,10 +45,11 @@ def load_data(dataset, normalize=False, print_data=False):
     sigma_rowvec = None
 
     if print_data:
-        print('First 10 Examples of the dataset:')
-        print('\n'.join(f'feature_matrix_row={i}, output={j}'
-                        for i, j in
-                        util.iterate_matrix(data, 0, 10,
+        print('First 10 rows of the dataset:')
+        print('\n'.join(f'rownum={i} : '
+                        f'feature_matrix_row={j}, output_row={k}'
+                        for i, j, k in
+                        util.iterate_matrix(data, ((0, 10),),
                                             ((0, ncols - 1),
                                              (ncols - 1, ncols)))))
 
@@ -59,10 +60,11 @@ def load_data(dataset, normalize=False, print_data=False):
         if print_data:
             print(f'mu={mu_rowvec}')
             print(f'sigma={sigma_rowvec}')
-            print('First 10 Examples of the dataset (After Normalization):')
-            print('\n'.join(f'feature_matrix_row={i}, output={j}'
-                            for i, j in
-                            util.iterate_matrix(data, 0, 10,
+            print('First 10 rows of the dataset (After Normalization):')
+            print('\n'.join(f'rownum={i} : '
+                            f'feature_matrix_row={j}, output_row={k}'
+                            for i, j, k in
+                            util.iterate_matrix(data, ((0, 10),),
                                                 ((0, ncols - 1),
                                                  (ncols - 1, ncols)))))
 
@@ -259,19 +261,23 @@ def run_dataset(dataset_name, dataset_title,
 
 def run():
     """Run Gradient Descent against various datasets."""
-    run_dataset('resources/data/ex1data1.txt', print_data=True,
+    dataset = 'resources/data/city_dataset_97_2.txt'
+    run_dataset(dataset, print_data=True,
                 dataset_title='Gradient Descent - Population Dataset - '
                               'Single-Variable',
                 dataset_xlabel='Population of City in 10,000s',
                 dataset_ylabel='Profit in $10,000s',
                 predict_func=predict_dataset1)
 
-    run_dataset('resources/data/ex1data2.txt', print_data=True, normalize=True,
+    dataset = 'resources/data/housing_dataset_47_3.txt'
+    run_dataset(dataset,
+                print_data=True, normalize=True,
                 dataset_title='Gradient Descent - Housing Prices - '
                               'Multi-Variable',
                 predict_func=predict_dataset2)
 
-    run_dataset('resources/data/ex1data2.txt', print_data=True, normalize=True,
+    run_dataset(dataset,
+                print_data=True, normalize=True,
                 dataset_title='Normal Equation - Housing Prices - '
                               'Multi-Variable',
                 predict_func=predict_dataset2,
