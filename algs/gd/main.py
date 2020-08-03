@@ -8,14 +8,15 @@ import numpy as np
 
 try:
     from .. import util
-    from ..plot_util import line_plot
-    from ..plot_util import scatter_plot
-    from ..plot_util import contour_plot
-    from ..plot_util import surface_plot
-    from ..plot_util import close_plot
+    from ..transform import identity
+    from ..cost import mean_squared_error
+    from ..plot import line_plot
+    from ..plot import scatter_plot
+    from ..plot import contour_plot
+    from ..plot import surface_plot
+    from ..plot import close_plot
     from .gradient_descent import gradient_descent
     from .gradient_descent import normal_equation
-    from .compute_cost import compute_cost
 except ImportError:
     import os
     import sys
@@ -26,14 +27,15 @@ except ImportError:
     parentdir = os.path.dirname(currentdir)
     sys.path.insert(0, parentdir)
     import util
-    from plot_util import line_plot
-    from plot_util import scatter_plot
-    from plot_util import contour_plot
-    from plot_util import surface_plot
-    from plot_util import close_plot
+    from transform import identity
+    from cost import mean_squared_error
+    from plot import line_plot
+    from plot import scatter_plot
+    from plot import contour_plot
+    from plot import surface_plot
+    from plot import close_plot
     from gradient_descent import gradient_descent
     from gradient_descent import normal_equation
-    from compute_cost import compute_cost
 
 
 def load_data(dataset, normalize=False, print_data=False):
@@ -130,7 +132,7 @@ def run_gradient_descent(feature_matrix, output_colvec,
             gradient_descent(feature_matrix, output_colvec,
                              num_examples, num_features,
                              alpha, num_iters, theta_colvec,
-                             debug)
+                             debug=debug)
         print(f'Theta found by gradient descent: {theta_colvec}')
 
     if num_features == 1:
@@ -180,8 +182,10 @@ def run_cost_analysis(feature_matrix, output_colvec,
     """Visualize Cost data using contour and sureface plots."""
 
     def get_z_values(theta0, theta1):
-        return compute_cost(feature_matrix, output_colvec,
-                            np.reshape([theta0, theta1], newshape=(2, 1)))
+        return util.compute_cost(feature_matrix, output_colvec,
+                                 np.reshape([theta0, theta1], newshape=(2, 1)),
+                                 transform_func=identity,
+                                 cost_func=mean_squared_error)
 
     if cost_hist is not None:
         fig, subplot = \

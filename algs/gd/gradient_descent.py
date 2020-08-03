@@ -7,8 +7,8 @@ import numpy as np
 
 try:
     from .. import util
-#    from .compute_cost import compute_cost_given_hypothesis
-    from .compute_cost import compute_cost_given_cost
+    from ..transform import identity
+    from ..cost import mean_squared_error
 except (ImportError, ValueError):
     import os
     import sys
@@ -19,14 +19,16 @@ except (ImportError, ValueError):
     currentdir = os.path.dirname(abspath)
     parentdir = os.path.dirname(currentdir)
     sys.path.insert(0, parentdir)
-#    from compute_cost import compute_cost_given_hypothesis
-    from compute_cost import compute_cost_given_cost
     import util
+    from transform import identity
+    from cost import mean_squared_error
 
 
 def gradient_descent(feature_matrix, output_colvec,
                      num_examples, num_features,
-                     alpha, num_iters, theta_colvec=None, debug=False):
+                     alpha, num_iters, theta_colvec=None,
+                     transform=identity, cost_func=mean_squared_error,
+                     debug=False):
     """Run Gradient Descent Algorithm."""
     if debug:
         print(f'num_examples(number of training samples)={num_examples}')
@@ -43,30 +45,19 @@ def gradient_descent(feature_matrix, output_colvec,
     if theta_colvec is None:
         theta_colvec = np.zeros(shape=(num_features + 1, 1))
 
-#    hypothesis_colvec = np.zeros(shape=(num_examples, 1))
-
-#    theta_colvec = theta_colvec.transpose()
-#
     for iter_num in range(0, num_iters):
-        # for i in range(0, num_examples):
-        #    hypothesis_colvec[i, 0] = \
-        #        np.matmul(theta_colvec,
-        #                  feature_matrix[i:i+1, :].transpose())
-        # for i in range(0, num_features + 1):
-        #    theta_colvec[0, i] -= \
-        #        alpha * \
-        #            ((np.sum((hypothesis_colvec - output_colvec) *
-        #             feature_matrix[:, i:i+1]))/num_examples)
-
         # Vectorized Implementation
-        cost_colvec = np.matmul(feature_matrix, theta_colvec) - output_colvec
+        hypothesis_colvec = transform(np.matmul(feature_matrix, theta_colvec))
+        cost_colvec = hypothesis_colvec - output_colvec
         theta_colvec = theta_colvec - \
             (alpha*np.matmul(feature_matrix.transpose(),
                              cost_colvec))/num_examples
 
         if debug:
             cost_hist[iter_num, 0] = \
-                compute_cost_given_cost(cost_colvec, num_examples)
+                util.compute_cost_given_hypothesis(hypothesis_colvec,
+                                                   output_colvec, num_examples,
+                                                   cost_func)
 
     return theta_colvec, cost_hist
 
