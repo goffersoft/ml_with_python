@@ -4,6 +4,7 @@
 
 from pathlib import Path
 import numpy as np
+import matplotlib.cm as cm
 
 try:
     from .. import util
@@ -11,6 +12,7 @@ try:
     from ..cost import cross_entropy
     from ..plot import scatter_plot
     from ..plot import line_plot
+    from ..plot import close_plot
     from ..gd.gradient_descent import gradient_descent_alphas
     from .logistic_regression import training_accuracy
 except ImportError:
@@ -27,6 +29,7 @@ except ImportError:
     from cost import cross_entropy
     from plot import scatter_plot
     from plot import line_plot
+    from plot import close_plot
     from gd.gradient_descent import gradient_descent_alphas
     from logistic_regression import training_accuracy
 
@@ -101,11 +104,11 @@ def plot_dataset(feature_matrix, output_colvec, num_features,
     return fig, subplot
 
 
-def run_gradient_descent(feature_matrix, output_colvec,
-                         num_examples, num_features,
-                         num_iters, fig, subplot,
-                         theta_colvec=None, debug=False):
-    """Run Gradient Descent/Normal Equation.
+def run_logistic_regression(feature_matrix, output_colvec,
+                            num_examples, num_features,
+                            num_iters, fig, subplot,
+                            theta_colvec=None, debug=False):
+    """Run Logistic Regression Equation.
 
     1) num_examples - number of training samples
     2) num_features - number of features
@@ -117,7 +120,7 @@ def run_gradient_descent(feature_matrix, output_colvec,
                       initial values of theta
     8) debug - print debug info
     """
-    print('Running Gradient Descent ...')
+    print('Running Logistic Regression...')
 
     if not theta_colvec:
         theta_colvec = np.zeros(shape=(num_features + 1, 1))
@@ -179,9 +182,24 @@ def run_cost_analysis(feature_matrix, output_colvec,
                       thetas, alphas, cost_hist,
                       dataset_title):
     """Run Cost analysis based on learnt values of theta."""
-    accuracy = training_accuracy(feature_matrix,
-                                 output_colvec, theta_colvec)
-    print(f'Train Accuracy: {accuracy}')
+    if cost_hist is not None:
+        fig = None
+        subplot = None
+        colors = cm.rainbow(np.linspace(0, 1, np.shape(alphas)[1]))
+        for index in range(0, np.shape(alphas)[1]):
+            fig, subplot = \
+                line_plot(np.reshape(range(1, np.shape(cost_hist)[0] + 1),
+                                     newshape=(np.shape(cost_hist)[0], 1)),
+                          cost_hist[:, index],
+                          xlabel='Number Of Iterations',
+                          ylabel='Cost J',
+                          marker='x', markersize=2,
+                          title=f'{dataset_title}\nConvergence Graph',
+                          color=colors[index],
+                          label=f'alpha={alphas[0, index]}',
+                          fig=fig, subplot=subplot)
+        util.pause('Program paused. Press enter to continue.')
+        close_plot(fig)
 
 
 def run_dataset(dataset_name, dataset_title,
@@ -202,16 +220,20 @@ def run_dataset(dataset_name, dataset_title,
 
     theta_colvec, alpha, cost, \
         thetas, alphas, cost_hist = \
-        run_gradient_descent(feature_matrix, output_colvec,
-                             num_examples, num_features,
-                             num_iters=1500,
-                             fig=fig, subplot=subplot,
-                             theta_colvec=None,
-                             debug=True)
+        run_logistic_regression(feature_matrix, output_colvec,
+                                num_examples, num_features,
+                                num_iters=1500,
+                                fig=fig, subplot=subplot,
+                                theta_colvec=None,
+                                debug=True)
 
     if predict_func:
         predict_func(theta_colvec, num_features,
                      mu_rowvec, sigma_rowvec)
+
+    accuracy = training_accuracy(feature_matrix,
+                                 output_colvec, theta_colvec)
+    print(f'Train Accuracy: {accuracy}')
 
     run_cost_analysis(feature_matrix, output_colvec,
                       num_features,
