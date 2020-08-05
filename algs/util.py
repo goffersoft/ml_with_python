@@ -83,11 +83,11 @@ def iterate_matrix(data_matrix,
 
     for rstart, rend in row_range_list:
         for row in range(rstart, rend):
-            output = [row]
-            output.extend([[data_matrix[row, col]
-                            for col in range(col_start, col_end)]
-                           for col_start, col_end in col_range_list])
-            yield output
+            print_output = [row]
+            print_output.extend([[data_matrix[row, col]
+                                  for col in range(col_start, col_end)]
+                                 for col_start, col_end in col_range_list])
+            yield print_output
 
 
 def normalize_data(data_matrix):
@@ -125,10 +125,11 @@ def compute_cost(feature_matrix, output_colvec, theta_colvec,
     num_features = number of features
     cost_func = (1/2num_examples)*(sum(h - output_colvec)**2)
 
-    hypothesis_colvec(i) = theta_colvec[0]*feature_matrix[i, 0] +
-                           theta_colvec[1]*feature_matrix[i, 1] +
-                           ...
-                           0 <= i < num_examples + 1
+    hypothesis_colvec(i) = \
+        transform_func(theta_colvec[0]*feature_matrix[i, 0]) +
+        transform_func(theta_colvec[1]*feature_matrix[i, 1]) +
+        ...
+        0 <= i < num_examples + 1
     """
 #   Vectorized Implementation
     num_examples = np.shape(feature_matrix)[0]
@@ -202,12 +203,16 @@ if __name__ == '__main__':
 
     print(f"{'*'*20}Testing Comput Cost Function{'*'*20}")
     DATASET = 'lr/resources/data/exam_dataset_100_3.txt'
-    print(f'DATASET : {DATASET}')
-    data, num_rows, num_ncols = get_data_as_matrix(DATASET, Path(__file__))
+    data, num_rows, num_cols = get_data_as_matrix(DATASET, Path(__file__))
+    print(f'First 10 rows of the dataset: {DATASET}')
+    print('\n'.join(f'rownum={i} : feature_matrix_row={j}, : '
+                    f'output_row={k}'
+                    for i, j, k in
+                    iterate_matrix(data, ((0, 10),), ((0, 2), (2, 3)))))
 
-    output = data[:, num_cols - 1:num_cols]
-    features = np.append(np.ones(shape=(num_rows, 1)),
-                         data[:, 0:num_cols - 1], axis=1)
+    output = data[0:4, num_cols - 1:num_cols]
+    features = np.append(np.ones(shape=(4, 1)),
+                         data[0:4, 0:num_cols - 1], axis=1)
     cost = compute_cost(features, output, np.zeros(shape=(num_cols, 1)),
                         transform_func=sigmoid, cost_func=cross_entropy)
     print(f'cost(sigmoid, cross_entropy)={cost}')

@@ -207,7 +207,8 @@ def contour_plot(xaxis_data, yaxis_data,
                  xlabel=None, ylabel=None,
                  title=None, fig=None, subplot=None,
                  subplot_nrows=1, subplot_ncols=1,
-                 subplot_index=1):
+                 subplot_index=1,
+                 transpose_flag=True):
     """Plot input data as a contour plot.
 
     If an existing figure is passed in, it is used
@@ -251,8 +252,11 @@ def contour_plot(xaxis_data, yaxis_data,
         params_list['levels'] = levels
 
     # need to transpose cost matrix or else axis gets flipped
+    if transpose_flag:
+        zaxis_data = zaxis_data.transpose()
+
     subplot.contour(xaxis_data, yaxis_data,
-                    zaxis_data.transpose(), **params_list)
+                    zaxis_data, **params_list)
 
     return fig, subplot
 
@@ -261,7 +265,8 @@ def surface_plot(xaxis_data, yaxis_data, compute_zaxis_data_func,
                  xlabel=None, ylabel=None,
                  title=None, fig=None, subplot=None,
                  subplot_nrows=1, subplot_ncols=1,
-                 subplot_index=1):
+                 subplot_index=1,
+                 transpose_flag=True):
     """Plot input data as a 3-D Surface plot.
 
     If an existing figure is passed in, it is used
@@ -305,7 +310,9 @@ def surface_plot(xaxis_data, yaxis_data, compute_zaxis_data_func,
                                         yaxis_data[i, j])
 
     # need to transpose cost matrix or else axis gets flipped
-    subplot.plot_surface(xaxis_data, yaxis_data, zaxis_data.transpose(),
+    if transpose_flag:
+        zaxis_data = zaxis_data.transpose()
+    subplot.plot_surface(xaxis_data, yaxis_data, zaxis_data,
                          rcount=nrows, ccount=ncols)
 
     return fig, subplot
