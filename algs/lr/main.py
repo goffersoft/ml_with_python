@@ -7,7 +7,11 @@ import numpy as np
 
 try:
     from .. import util
+    from ..transform import sigmoid
+    from ..cost import cross_entropy
     from ..plot import scatter_plot
+    from ..plot import line_plot
+    from ..gd.gradient_descent import gradient_descent
 except ImportError:
     import os
     import sys
@@ -18,7 +22,11 @@ except ImportError:
     parentdir = os.path.dirname(currentdir)
     sys.path.insert(0, parentdir)
     import util
+    from transform import sigmoid
+    from cost import cross_entropy
     from plot import scatter_plot
+    from plot import line_plot
+    from gd.gradient_descent import gradient_descent
 
 
 def load_data(dataset, normalize=False, print_data=False):
@@ -91,6 +99,61 @@ def plot_dataset(feature_matrix, output_colvec, num_features,
     return fig, subplot
 
 
+def run_gradient_descent(feature_matrix, output_colvec,
+                         num_examples, num_features,
+                         alpha, num_iters, fig, subplot,
+                         theta_colvec=None, debug=False):
+    """Run Gradient Descent/Normal Equation.
+
+    1) num_examples - number of training samples
+    2) num_features - number of features
+    3) feature_matrix - num_examples x (num_features + 1)
+    4) output_colvec - num_examples x 1 col vector
+    5) alpha - alpha value for gradient descent
+    6) num_iters - number of iterations
+    7) theta_colvec - (num_features + 1) x 1 col vector
+                      initial values of theta
+    8) debug - print debug info
+    """
+    print('Running Gradient Descent ...')
+
+    if not theta_colvec:
+        theta_colvec = np.zeros(shape=(num_features + 1, 1))
+
+    cost_hist = None
+    theta_colvec, cost_hist = \
+        gradient_descent(feature_matrix, output_colvec,
+                         num_examples, num_features,
+                         alpha, num_iters, theta_colvec,
+                         transform=sigmoid,
+                         cost_func=cross_entropy,
+                         debug=debug)
+    print(f'Theta found by gradient descent: {theta_colvec}')
+    if debug:
+        print(f'cost history : {cost_hist}')
+
+    if num_features == 2:
+        # With 2 features. Decision boundary is
+        #            theta-0 + theta-1*x1 + theta-2*x2 >= 0
+        # to draw a line we need 2 points.
+        # take the min and max of the first feature
+        # x2 = -1/theta-2*(theta-0 + theta-1*x1)
+        xdata_colvec = np.reshape([np.min(feature_matrix[:, 1]),
+                                   np.max(feature_matrix[:, 1])],
+                                  newshape=(2, 1))
+        ydata_colvec = -(theta_colvec[0, 0] +
+                         (theta_colvec[1, 0] *
+                          xdata_colvec))/theta_colvec[2, 0]
+        line_plot(xdata_colvec,
+                  ydata_colvec,
+                  marker='x', label='Logistic regression',
+                  color='r', markersize=2,
+                  fig=fig, subplot=subplot)
+        util.pause('Program paused. Press enter to continue.')
+
+    return theta_colvec, cost_hist
+
+
 def run_dataset(dataset_name, dataset_title,
                 dataset_xlabel='X', dataset_ylabel='Y',
                 normalize=False, print_data=False,
@@ -98,19 +161,27 @@ def run_dataset(dataset_name, dataset_title,
                 predict_func=None):
     """Run Logistic Regression."""
     _, features, output, \
-        _, feature_count, _, _ = \
+        sample_count, feature_count, _, _ = \
         load_data(dataset_name, normalize, print_data)
 
-    _, _ = \
+    fig, subplot = \
         plot_dataset(features, output, feature_count,
                      dataset_title, dataset_xlabel,
                      dataset_ylabel, label)
+
+    theta_colvec, cost_hist = \
+        run_gradient_descent(features, output,
+                             sample_count, feature_count,
+                             alpha=1.0, num_iters=1500,
+                             fig=fig, subplot=subplot,
+                             theta_colvec=None,
+                             debug=True)
 
 
 def run():
     """Run Logistic Regression against various datasets."""
     dataset = 'resources/data/exam_dataset_100_3.txt'
-    run_dataset(dataset, print_data=True,
+    run_dataset(dataset, print_data=True, normalize=True,
                 dataset_title='Logistic Regression - Exam Dataset',
                 dataset_xlabel='Exam1 Score',
                 dataset_ylabel='Exam2 Score',
@@ -118,7 +189,7 @@ def run():
                 predict_func=None)
 
     dataset = 'resources/data/microchip_test_dataset_118_3.txt'
-    run_dataset(dataset, print_data=True,
+    run_dataset(dataset, print_data=True, normalize=True,
                 dataset_title='Logistic Regression - Microchip Test1 Dataset',
                 dataset_xlabel='Test1 Results',
                 dataset_ylabel='Test2 Results',
