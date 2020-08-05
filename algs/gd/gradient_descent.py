@@ -76,7 +76,7 @@ def gradient_descent_alphas(feature_matrix, output_colvec,
     for index, alpha in enumerate(alpha_range):
         theta_colvec = np.copy(orig_theta_colvec)
         theta_colvec, cost_hist = \
-            gradient_descent(features, output_colvec,
+            gradient_descent(feature_matrix, output_colvec,
                              num_examples, num_features,
                              theta_colvec=theta_colvec,
                              alpha=alpha, num_iters=num_iters,
@@ -103,8 +103,8 @@ def gradient_descent_alphas(feature_matrix, output_colvec,
 
 def gradient_descent_iterate_alphas(feature_matrix, output_colvec,
                                     num_examples, num_features,
-                                    alpha_range, num_alphas,
                                     num_iters, theta_colvec=None,
+                                    alpha_range=None, num_alphas=None,
                                     transform=identity,
                                     cost_func=mean_squared_error,
                                     debug=False, debug_print=False):
@@ -136,13 +136,13 @@ def gradient_descent_iterate_alphas(feature_matrix, output_colvec,
         orig_theta_colvec = np.zeros(shape=(num_features + 1, 1))
 
     if None in (alpha_range, num_alphas):
-        num_alphas = 10
+        num_alphas = 5
         alpha_range = (x*0.3 for x in range(1, num_alphas + 1))
 
     for alpha in alpha_range:
         theta_colvec = np.copy(orig_theta_colvec)
         theta_colvec, cost_hist = \
-            gradient_descent(features, output_colvec,
+            gradient_descent(feature_matrix, output_colvec,
                              num_examples, num_features,
                              theta_colvec=theta_colvec,
                              alpha=alpha, num_iters=num_iters,
