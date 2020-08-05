@@ -146,15 +146,25 @@ def run_gradient_descent(feature_matrix, output_colvec,
     return theta_colvec, cost_hist
 
 
-def predict_dataset1(theta_colvec, num_features):
+def predict_dataset1(theta_colvec, num_features, mu_rowvec, sigma_rowvec):
     """Predict profits based on the trained theta vals."""
-    predict1 = np.matmul(np.reshape([1, 3.5],
+    if None in (mu_rowvec, sigma_rowvec):
+        population = 3.5
+    else:
+        population = (3.5 - mu_rowvec[0, 0])/sigma_rowvec[0, 0]
+
+    predict1 = np.matmul(np.reshape([1, population],
                                     newshape=(1, num_features + 1)),
                          theta_colvec)
     print('For population = 35,000, '
           f'we predict a profit of {predict1[0, 0]*10000}')
 
-    predict2 = np.matmul(np.reshape([1, 7],
+    if None in (mu_rowvec, sigma_rowvec):
+        population = 7
+    else:
+        population = (7 - mu_rowvec[0, 0])/sigma_rowvec[0, 0]
+
+    predict2 = np.matmul(np.reshape([1, population],
                                     newshape=(1, num_features + 1)),
                          theta_colvec)
     print('For population = 70,000, '
@@ -231,7 +241,8 @@ def run_dataset(dataset_name, dataset_title,
                 dataset_xlabel='X', dataset_ylabel='Y',
                 normalize=False, print_data=False,
                 predict_func=None,
-                normal_eq=False):
+                normal_eq=False,
+                alpha=0.1):
     """Run Gradient Descent."""
     _, features, output, \
         sample_count, feature_count, mu_rowvec, sigma_rowvec = \
@@ -241,22 +252,18 @@ def run_dataset(dataset_name, dataset_title,
         plot_dataset(features, output, feature_count,
                      dataset_title, dataset_xlabel,
                      dataset_ylabel)
-
     theta_colvec, cost_hist = \
         run_gradient_descent(features, output,
                              sample_count, feature_count,
-                             alpha=0.01, num_iters=1500,
+                             alpha=alpha, num_iters=1500,
                              fig=fig, subplot=subplot,
                              theta_colvec=None,
                              normal_eq=normal_eq,
                              debug=True)
 
     if predict_func:
-        if normalize:
-            predict_func(theta_colvec, feature_count,
-                         mu_rowvec, sigma_rowvec)
-        else:
-            predict_func(theta_colvec, feature_count)
+        predict_func(theta_colvec, feature_count,
+                     mu_rowvec, sigma_rowvec)
 
     fig1, _ = run_cost_analysis(features, output, feature_count,
                                 theta_colvec, cost_hist, dataset_title)
@@ -268,12 +275,13 @@ def run_dataset(dataset_name, dataset_title,
 def run():
     """Run Gradient Descent against various datasets."""
     dataset = 'resources/data/city_dataset_97_2.txt'
-    run_dataset(dataset, print_data=True,
+    run_dataset(dataset, print_data=True, normalize=True,
                 dataset_title='Gradient Descent - Population Dataset - '
                               'Single-Variable',
                 dataset_xlabel='Population of City in 10,000s',
                 dataset_ylabel='Profit in $10,000s',
-                predict_func=predict_dataset1)
+                predict_func=predict_dataset1,
+                alpha=0.03)
 
     dataset = 'resources/data/housing_dataset_47_3.txt'
     run_dataset(dataset,
