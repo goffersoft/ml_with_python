@@ -206,7 +206,8 @@ def run_dataset(dataset_name, dataset_title,
                 dataset_xlabel='X', dataset_ylabel='Y',
                 normalize=False, print_data=False,
                 label=None,
-                predict_func=None):
+                predict_func=None,
+                add_features=False):
     """Run Logistic Regression."""
     _, feature_matrix, output_colvec, \
         num_examples, num_features, mu_rowvec, sigma_rowvec = \
@@ -234,6 +235,25 @@ def run_dataset(dataset_name, dataset_title,
     accuracy = training_accuracy(feature_matrix,
                                  output_colvec, theta_colvec)
     print(f'Train Accuracy: {accuracy}')
+    util.pause('Program paused. Press enter to continue.')
+
+    if add_features and np.shape(feature_matrix)[1] >= 2:
+        print('Improve Training Accuracy By Adding New Features...')
+        feature_matrix = util.add_features(feature_matrix[:, 1],
+                                           feature_matrix[:, 2], 6)
+        num_examples, num_features = np.shape(feature_matrix)
+        num_features -= 1
+        theta_colvec, alpha, cost, \
+            thetas, alphas, cost_hist = \
+            run_logistic_regression(feature_matrix, output_colvec,
+                                    num_examples, num_features,
+                                    num_iters=1500,
+                                    fig=fig, subplot=subplot,
+                                    theta_colvec=None,
+                                    debug=True)
+        accuracy = training_accuracy(feature_matrix,
+                                     output_colvec, theta_colvec)
+        print(f'Train Accuracy After Adding New Features: {accuracy}')
 
     run_cost_analysis(feature_matrix, output_colvec,
                       num_features,
@@ -258,7 +278,8 @@ def run():
                 dataset_xlabel='Test1 Results',
                 dataset_ylabel='Test2 Results',
                 label=['Accepted', 'Rejected'],
-                predict_func=None)
+                predict_func=None,
+                add_features=True)
 
 
 if __name__ == '__main__':

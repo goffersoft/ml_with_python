@@ -151,6 +151,27 @@ def compute_cost_given_hypothesis(hypothesis_colvec,
     return cost_func(hypothesis_colvec, output_colvec, num_examples)
 
 
+def add_features(feature1, feature2, degree):
+    """Add additional feature columns in addition tot he 2 input features.
+
+    feature 1(f1) is a row/column vector or a 1d array
+    feature 2(f2) is a row/column vector or a 1d array
+    m = size(feature1)
+    degree 0 = 1's (m x 1)
+    degree 1 = 1's, f1, f2
+    degree 2 = 1's, f1, f2, f1^2, f2^2, f1*f2
+    degree 3 = 1's, f1, f2, f1^2, f2^2, f1*f2, f1^3, f1^2*f2, f1*f2^2, f2^3
+    ...
+    """
+    out = np.ones(shape=(np.size(feature1), 1))
+    for deg in range(1, degree + 1):
+        for index in range(deg):
+            tmp = np.reshape(feature1**(deg - index) * feature2**index,
+                             newshape=(np.size(feature1), 1))
+            out = np.append(out, tmp, axis=1)
+    return out
+
+
 if __name__ == '__main__':
     DATASET = 'gd/resources/data/city_dataset_97_2.txt'
     print(f"{'*'*20}Testing Iterate Matrix Function{'*'*20}")
