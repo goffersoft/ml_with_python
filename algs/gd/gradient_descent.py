@@ -62,9 +62,9 @@ def gradient_descent_alphas(feature_matrix, output_colvec,
         alpha_range = (x*0.3 for x in range(1, num_alphas + 1))
 
     if debug:
-        cost_hist = np.zeros(shape=(num_iters, num_alphas))
+        cost_matrix = np.zeros(shape=(num_iters, num_alphas))
     else:
-        cost_hist = None
+        cost_matrix = None
 
     theta_values = np.zeros(shape=(num_features + 1, num_alphas))
     alphas_rowvec = np.zeros(shape=(1, num_alphas))
@@ -84,7 +84,7 @@ def gradient_descent_alphas(feature_matrix, output_colvec,
                              debug=debug, debug_print=False)
         if debug:
             tmp_cost = cost_hist[num_iters - 1, 0]
-            cost_hist[:, index:index + 1] = cost_hist
+            cost_matrix[:, index:index + 1] = cost_hist
         else:
             tmp_cost = util.compute_cost(feature_matrix,
                                          output_colvec, num_examples,
@@ -98,7 +98,7 @@ def gradient_descent_alphas(feature_matrix, output_colvec,
         theta_values[:, index:index + 1] = theta_colvec[:]
 
     return optimal_theta_colvec, optimal_alpha, optimal_cost, \
-        theta_values, alphas_rowvec, cost_hist
+        theta_values, alphas_rowvec, cost_matrix
 
 
 def gradient_descent_iterate_alphas(feature_matrix, output_colvec,

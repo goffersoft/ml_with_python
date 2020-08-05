@@ -121,7 +121,7 @@ def line_plot(xaxis_data, yaxis_data,
     if marker:
         params_list['marker'] = marker
 
-    if color:
+    if color is not None:
         params_list['color'] = color
 
     if linewidth:
@@ -185,7 +185,7 @@ def scatter_plot(xaxis_data, yaxis_data,
     if marker:
         params_list['marker'] = marker
 
-    if color:
+    if color is not None:
         params_list['color'] = color
 
     if linewidths:
