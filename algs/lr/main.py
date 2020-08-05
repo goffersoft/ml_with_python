@@ -11,7 +11,8 @@ try:
     from ..cost import cross_entropy
     from ..plot import scatter_plot
     from ..plot import line_plot
-    from ..gd.gradient_descent import gradient_descent
+    from ..gd.gradient_descent import gradient_descent_alphas
+    from .logistic_regression import training_accuracy
 except ImportError:
     import os
     import sys
@@ -26,7 +27,8 @@ except ImportError:
     from cost import cross_entropy
     from plot import scatter_plot
     from plot import line_plot
-    from gd.gradient_descent import gradient_descent
+    from gd.gradient_descent import gradient_descent_alphas
+    from logistic_regression import training_accuracy
 
 
 def load_data(dataset, normalize=False, print_data=False):
@@ -101,7 +103,7 @@ def plot_dataset(feature_matrix, output_colvec, num_features,
 
 def run_gradient_descent(feature_matrix, output_colvec,
                          num_examples, num_features,
-                         alpha, num_iters, fig, subplot,
+                         num_iters, fig, subplot,
                          theta_colvec=None, debug=False):
     """Run Gradient Descent/Normal Equation.
 
@@ -121,14 +123,17 @@ def run_gradient_descent(feature_matrix, output_colvec,
         theta_colvec = np.zeros(shape=(num_features + 1, 1))
 
     cost_hist = None
-    theta_colvec, cost_hist = \
-        gradient_descent(feature_matrix, output_colvec,
-                         num_examples, num_features,
-                         alpha, num_iters, theta_colvec,
-                         transform=sigmoid,
-                         cost_func=cross_entropy,
-                         debug=debug)
-    print(f'Theta found by gradient descent: {theta_colvec}')
+
+    theta_colvec, alpha, cost, \
+        thetas, alphas, cost_hist, = \
+        gradient_descent_alphas(feature_matrix, output_colvec,
+                                num_examples, num_features,
+                                num_iters, theta_colvec,
+                                transform=sigmoid,
+                                cost_func=cross_entropy,
+                                debug=debug, debug_print=debug)
+    print(f'Theta found by gradient descent(alpha={alpha}, '
+          f'cost={cost}) : {theta_colvec}')
     if debug:
         print(f'cost history : {cost_hist}')
 
@@ -151,7 +156,32 @@ def run_gradient_descent(feature_matrix, output_colvec,
                   fig=fig, subplot=subplot)
         util.pause('Program paused. Press enter to continue.')
 
-    return theta_colvec, cost_hist
+    return theta_colvec, alpha, cost, thetas, alphas, cost_hist
+
+
+def predict_dataset1(theta_colvec, num_features, mu_rowvec, sigma_rowvec):
+    """Predict admission probability based on the trained theta vals."""
+    exam1_score = (45 - mu_rowvec[0, 0])/sigma_rowvec[0, 0]
+    exam2_score = (85 - mu_rowvec[0, 1])/sigma_rowvec[0, 1]
+    predict1 = sigmoid(np.matmul(np.reshape([1, exam1_score, exam2_score],
+                                            newshape=(1, num_features + 1)),
+                                 theta_colvec))
+
+    print('For a student with scores 45 and 85, we predict an admission '
+          f'probability of {predict1[0, 0]}')
+
+    util.pause('Program paused. Press enter to continue.')
+
+
+def run_cost_analysis(feature_matrix, output_colvec,
+                      num_features,
+                      theta_colvec, alpha, cost,
+                      thetas, alphas, cost_hist,
+                      dataset_title):
+    """Run Cost analysis based on learnt values of theta."""
+    accuracy = training_accuracy(feature_matrix,
+                                 output_colvec, theta_colvec)
+    print(f'Train Accuracy: {accuracy}')
 
 
 def run_dataset(dataset_name, dataset_title,
@@ -160,22 +190,34 @@ def run_dataset(dataset_name, dataset_title,
                 label=None,
                 predict_func=None):
     """Run Logistic Regression."""
-    _, features, output, \
-        sample_count, feature_count, _, _ = \
+    _, feature_matrix, output_colvec, \
+        num_examples, num_features, mu_rowvec, sigma_rowvec = \
         load_data(dataset_name, normalize, print_data)
 
     fig, subplot = \
-        plot_dataset(features, output, feature_count,
+        plot_dataset(feature_matrix, output_colvec,
+                     num_features,
                      dataset_title, dataset_xlabel,
                      dataset_ylabel, label)
 
-    theta_colvec, cost_hist = \
-        run_gradient_descent(features, output,
-                             sample_count, feature_count,
-                             alpha=1.0, num_iters=1500,
+    theta_colvec, alpha, cost, \
+        thetas, alphas, cost_hist = \
+        run_gradient_descent(feature_matrix, output_colvec,
+                             num_examples, num_features,
+                             num_iters=1500,
                              fig=fig, subplot=subplot,
                              theta_colvec=None,
                              debug=True)
+
+    if predict_func:
+        predict_func(theta_colvec, num_features,
+                     mu_rowvec, sigma_rowvec)
+
+    run_cost_analysis(feature_matrix, output_colvec,
+                      num_features,
+                      theta_colvec, alpha, cost,
+                      thetas, alphas, cost_hist,
+                      dataset_title)
 
 
 def run():
@@ -186,7 +228,7 @@ def run():
                 dataset_xlabel='Exam1 Score',
                 dataset_ylabel='Exam2 Score',
                 label=['Admitted', 'Not Admitted'],
-                predict_func=None)
+                predict_func=predict_dataset1)
 
     dataset = 'resources/data/microchip_test_dataset_118_3.txt'
     run_dataset(dataset, print_data=True, normalize=True,
