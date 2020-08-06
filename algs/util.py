@@ -133,7 +133,7 @@ def compute_cost(feature_matrix, output_colvec, theta_colvec,
     """
 #   Vectorized Implementation
     num_examples = np.shape(feature_matrix)[0]
-    hypothesis_colvec = transform_func(np.matmul(feature_matrix, theta_colvec))
+    hypothesis_colvec = transform_func(feature_matrix @ theta_colvec)
 
     return cost_func(hypothesis_colvec, output_colvec, num_examples)
 

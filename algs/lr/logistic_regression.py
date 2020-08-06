@@ -23,7 +23,7 @@ def training_accuracy(feature_matrix, output_colvec, theta_colvec,
                       transform=sigmoid, threshold=0.5):
     """Compute Training Accuracy."""
     predicted_output = \
-        transform(np.matmul(feature_matrix, theta_colvec)) >= threshold
+        transform(feature_matrix @ theta_colvec) >= threshold
 
     return np.mean((predicted_output == output_colvec) * 100)
 

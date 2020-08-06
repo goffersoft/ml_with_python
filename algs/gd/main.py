@@ -137,7 +137,7 @@ def run_gradient_descent(feature_matrix, output_colvec,
 
     if num_features == 1:
         line_plot(feature_matrix[:, 1],
-                  np.matmul(feature_matrix, theta_colvec),
+                  feature_matrix @ theta_colvec,
                   marker='x', label='Linear regression',
                   color='b', markersize=2,
                   fig=fig, subplot=subplot)
@@ -153,9 +153,8 @@ def predict_dataset1(theta_colvec, num_features, mu_rowvec, sigma_rowvec):
     else:
         population = (3.5 - mu_rowvec[0, 0])/sigma_rowvec[0, 0]
 
-    predict1 = np.matmul(np.reshape([1, population],
-                                    newshape=(1, num_features + 1)),
-                         theta_colvec)
+    predict1 = np.reshape([1, population],
+                          newshape=(1, num_features + 1)) @ theta_colvec
     print('For population = 35,000, '
           f'we predict a profit of {predict1[0, 0]*10000}')
 
@@ -164,9 +163,8 @@ def predict_dataset1(theta_colvec, num_features, mu_rowvec, sigma_rowvec):
     else:
         population = (7 - mu_rowvec[0, 0])/sigma_rowvec[0, 0]
 
-    predict2 = np.matmul(np.reshape([1, population],
-                                    newshape=(1, num_features + 1)),
-                         theta_colvec)
+    predict2 = np.reshape([1, population],
+                          newshape=(1, num_features + 1)) @ theta_colvec
     print('For population = 70,000, '
           f'we predict a profit of {predict2[0, 0]*10000}')
 
@@ -177,9 +175,8 @@ def predict_dataset2(theta_colvec, num_features, mu_rowvec, sigma_rowvec):
     """Predict profits based on the trained theta vals."""
     num_bedrooms = (3 - mu_rowvec[0, 1])/sigma_rowvec[0, 1]
     sq_footage = (1650 - mu_rowvec[0, 0])/sigma_rowvec[0, 0]
-    predict1 = np.matmul(np.reshape([1, num_bedrooms, sq_footage],
-                                    newshape=(1, num_features + 1)),
-                         theta_colvec)
+    predict1 = np.reshape([1, num_bedrooms, sq_footage],
+                          newshape=(1, num_features + 1)) @ theta_colvec
     print('For a 1650 sq-ft 3 br house, '
           f'we predict an estmated house price of {predict1[0, 0]}')
 

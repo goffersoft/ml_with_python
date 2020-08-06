@@ -187,9 +187,9 @@ def gradient_descent(feature_matrix, output_colvec,
 
     for iter_num in range(0, num_iters):
         # Vectorized Implementation
-        hypothesis_colvec = transform(np.matmul(feature_matrix, theta_colvec))
+        hypothesis_colvec = transform(feature_matrix @ theta_colvec)
         cost_colvec = hypothesis_colvec - output_colvec
-        gradient = np.matmul(feature_matrix.transpose(), cost_colvec)
+        gradient = feature_matrix.transpose() @ cost_colvec
         theta_colvec = theta_colvec - ((alpha*gradient)/num_examples)
         if debug:
             cost_hist[iter_num, 0] = \
@@ -202,13 +202,11 @@ def gradient_descent(feature_matrix, output_colvec,
 
 def normal_equation(feature_matrix, output_colvec):
     """Run Gradient Descent using the Normal Equation."""
-    fm_transpose_fm = \
-        np.matmul(feature_matrix.transpose(), feature_matrix)
+    fm_transpose_fm = feature_matrix.transpose() @ feature_matrix
     fm_transpose_fm_pinv = np.linalg.pinv(fm_transpose_fm)
-    fm_transpose_output_colvec = \
-        np.matmul(feature_matrix.transpose(), output_colvec)
+    fm_transpose_output_colvec = feature_matrix.transpose() @ output_colvec
 
-    return np.matmul(fm_transpose_fm_pinv, fm_transpose_output_colvec)
+    return fm_transpose_fm_pinv @ fm_transpose_output_colvec
 
 
 if __name__ == '__main__':

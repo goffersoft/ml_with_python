@@ -164,7 +164,7 @@ def run_logistic_regression(feature_matrix, output_colvec,
                   ydata_colvec,
                   marker='x', label='Logistic regression',
                   color='r', markersize=2,
-                  fig=fig, subplot=subplot)
+                  fig=fig, subplot=subplot, linewidth=1)
         util.pause('Program paused. Press enter to continue.')
     elif num_features > 2 and degree:
         if not uv_vals:
@@ -184,9 +184,9 @@ def predict_dataset1(theta_colvec, num_features, mu_rowvec, sigma_rowvec):
     """Predict admission probability based on the trained theta vals."""
     exam1_score = (45 - mu_rowvec[0, 0])/sigma_rowvec[0, 0]
     exam2_score = (85 - mu_rowvec[0, 1])/sigma_rowvec[0, 1]
-    predict1 = sigmoid(np.matmul(np.reshape([1, exam1_score, exam2_score],
-                                            newshape=(1, num_features + 1)),
-                                 theta_colvec))
+    predict1 = sigmoid(np.reshape([1, exam1_score, exam2_score],
+                                  newshape=(1, num_features + 1)) @
+                       theta_colvec)
 
     print('For a student with scores 45 and 85, we predict an admission '
           f'probability of {predict1[0, 0]}')
@@ -211,6 +211,7 @@ def run_cost_analysis(alphas, cost_hist, dataset_title):
                           title=f'{dataset_title}\nConvergence Graph',
                           color=colors[index],
                           label=f'alpha={alphas[0, index]}',
+                          linewidth=1,
                           fig=fig, subplot=subplot)
         util.pause('Program paused. Press enter to continue.')
         close_plot(fig)
