@@ -188,7 +188,8 @@ def predict_dataset2(theta_colvec, num_features, mu_rowvec, sigma_rowvec):
 
 def run_cost_analysis(feature_matrix, output_colvec,
                       num_features, theta_colvec, cost_hist,
-                      dataset_title):
+                      dataset_title,
+                      theta_vals = None):
     """Visualize Cost data using contour and sureface plots."""
 
     def get_z_values(theta0, theta1):
@@ -215,17 +216,19 @@ def run_cost_analysis(feature_matrix, output_colvec,
         print('Detailed Cost analysis only supported for 1 features!!')
         return None, None
 
-    theta0_vals = np.linspace(-10, 10, 100)
-    theta1_vals = np.linspace(-1, 4, 100)
+    if not theta_vals:
+        theta_vals = [0, 0]
+        theta_vals[0] = np.linspace(-10, 10, 100)
+        theta_vals[1] = np.linspace(-1, 4, 100)
 
-    fig, subplot = surface_plot(theta0_vals, theta1_vals, get_z_values,
+    fig, subplot = surface_plot(theta_vals[0], theta_vals[1], get_z_values,
                                 title=dataset_title,
                                 xlabel='theta_0',
                                 ylabel='theta_1')
     util.pause('Program paused. Press enter to continue.')
     close_plot(fig)
 
-    fig, subplot = contour_plot(theta0_vals, theta1_vals,
+    fig, subplot = contour_plot(theta_vals[0], theta_vals[1],
                                 get_z_values,
                                 title=dataset_title,
                                 levels=np.logspace(-2, 3, 20))
