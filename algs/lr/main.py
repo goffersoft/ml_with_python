@@ -12,6 +12,7 @@ try:
     from ..cost import cross_entropy
     from ..plot import scatter_plot
     from ..plot import line_plot
+    from ..plot import contour_plot
     from ..plot import close_plot
     from ..gd.gradient_descent import gradient_descent_alphas
     from .logistic_regression import training_accuracy
@@ -29,6 +30,7 @@ except ImportError:
     from cost import cross_entropy
     from plot import scatter_plot
     from plot import line_plot
+    from plot import contour_plot
     from plot import close_plot
     from gd.gradient_descent import gradient_descent_alphas
     from logistic_regression import training_accuracy
@@ -107,7 +109,8 @@ def plot_dataset(feature_matrix, output_colvec, num_features,
 def run_logistic_regression(feature_matrix, output_colvec,
                             num_examples, num_features,
                             num_iters, fig, subplot,
-                            theta_colvec=None, debug=False):
+                            theta_colvec=None, debug=False,
+                            uv_vals=None, degree=None):
     """Run Logistic Regression Equation.
 
     1) num_examples - number of training samples
@@ -120,6 +123,11 @@ def run_logistic_regression(feature_matrix, output_colvec,
                       initial values of theta
     8) debug - print debug info
     """
+
+    def get_z_values(u_val, v_val):
+        return (util.add_features(u_val, v_val, degree) @
+                theta_colvec)[0, 0]
+
     print('Running Logistic Regression...')
 
     if not theta_colvec:
@@ -158,6 +166,16 @@ def run_logistic_regression(feature_matrix, output_colvec,
                   color='r', markersize=2,
                   fig=fig, subplot=subplot)
         util.pause('Program paused. Press enter to continue.')
+    elif num_features > 2 and degree:
+        if not uv_vals:
+            uv_vals = [0, 0]
+            uv_vals[0] = np.linspace(-2, 2, 50)
+            uv_vals[1] = np.linspace(-2, 2, 50)
+
+        fig, subplot = contour_plot(uv_vals[0], uv_vals[1],
+                                    get_z_values,
+                                    levels=0,
+                                    fig=fig, subplot=subplot)
 
     return theta_colvec, alpha, cost, thetas, alphas, cost_hist
 
@@ -176,11 +194,7 @@ def predict_dataset1(theta_colvec, num_features, mu_rowvec, sigma_rowvec):
     util.pause('Program paused. Press enter to continue.')
 
 
-def run_cost_analysis(feature_matrix, output_colvec,
-                      num_features,
-                      theta_colvec, alpha, cost,
-                      thetas, alphas, cost_hist,
-                      dataset_title):
+def run_cost_analysis(alphas, cost_hist, dataset_title):
     """Run Cost analysis based on learnt values of theta."""
     if cost_hist is not None:
         fig = None
@@ -207,7 +221,8 @@ def run_dataset(dataset_name, dataset_title,
                 normalize=False, print_data=False,
                 label=None,
                 predict_func=None,
-                add_features=False):
+                add_features=False,
+                degree=None):
     """Run Logistic Regression."""
     _, feature_matrix, output_colvec, \
         num_examples, num_features, mu_rowvec, sigma_rowvec = \
@@ -219,14 +234,25 @@ def run_dataset(dataset_name, dataset_title,
                      dataset_title, dataset_xlabel,
                      dataset_ylabel, label)
 
+    if add_features and np.shape(feature_matrix)[1] >= 2:
+        if not degree:
+            degree = 6
+        print('Improve Training Accuracy By Adding New Features...')
+        feature_matrix = util.add_features(feature_matrix[:, 1],
+                                           feature_matrix[:, 2], degree)
+        num_examples, num_features = np.shape(feature_matrix)
+        num_features -= 1
+        print('num_features={num_features}, num_examples={num_examples}')
+
     theta_colvec, alpha, cost, \
-        thetas, alphas, cost_hist = \
+        _, alphas, cost_hist = \
         run_logistic_regression(feature_matrix, output_colvec,
                                 num_examples, num_features,
                                 num_iters=1500,
                                 fig=fig, subplot=subplot,
                                 theta_colvec=None,
-                                debug=True)
+                                debug=True,
+                                degree=degree)
 
     if predict_func:
         predict_func(theta_colvec, num_features,
@@ -234,32 +260,10 @@ def run_dataset(dataset_name, dataset_title,
 
     accuracy = training_accuracy(feature_matrix,
                                  output_colvec, theta_colvec)
-    print(f'Train Accuracy: {accuracy}')
+    print(f'Train Accuracy(alpha={alpha}, cost={cost}): {accuracy}')
     util.pause('Program paused. Press enter to continue.')
 
-    if add_features and np.shape(feature_matrix)[1] >= 2:
-        print('Improve Training Accuracy By Adding New Features...')
-        feature_matrix = util.add_features(feature_matrix[:, 1],
-                                           feature_matrix[:, 2], 6)
-        num_examples, num_features = np.shape(feature_matrix)
-        num_features -= 1
-        theta_colvec, alpha, cost, \
-            thetas, alphas, cost_hist = \
-            run_logistic_regression(feature_matrix, output_colvec,
-                                    num_examples, num_features,
-                                    num_iters=1500,
-                                    fig=fig, subplot=subplot,
-                                    theta_colvec=None,
-                                    debug=True)
-        accuracy = training_accuracy(feature_matrix,
-                                     output_colvec, theta_colvec)
-        print(f'Train Accuracy After Adding New Features: {accuracy}')
-
-    run_cost_analysis(feature_matrix, output_colvec,
-                      num_features,
-                      theta_colvec, alpha, cost,
-                      thetas, alphas, cost_hist,
-                      dataset_title)
+    run_cost_analysis(alphas, cost_hist, dataset_title)
 
 
 def run():
