@@ -189,7 +189,7 @@ def predict_dataset2(theta_colvec, num_features, mu_rowvec, sigma_rowvec):
 def run_cost_analysis(feature_matrix, output_colvec,
                       num_features, theta_colvec, cost_hist,
                       dataset_title,
-                      theta_vals = None):
+                      theta_vals=None):
     """Visualize Cost data using contour and sureface plots."""
 
     def get_z_values(theta0, theta1):
