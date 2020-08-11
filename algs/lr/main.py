@@ -196,11 +196,13 @@ def predict_dataset1(theta_colvec, num_features, mu_rowvec, sigma_rowvec):
 
 def run_cost_analysis(alphas, cost_hist, dataset_title):
     """Run Cost analysis based on learnt values of theta."""
+    min_cost = np.zeros(shape=(1, np.size(alphas)))
     if cost_hist is not None:
         fig = None
         subplot = None
         colors = cm.rainbow(np.linspace(0, 1, np.shape(alphas)[1]))
         for index in range(0, np.shape(alphas)[1]):
+            min_cost[0, index] = np.min(cost_hist[:, index])
             fig, subplot = \
                 line_plot(np.reshape(range(1, np.shape(cost_hist)[0] + 1),
                                      newshape=(np.shape(cost_hist)[0], 1)),
@@ -213,6 +215,17 @@ def run_cost_analysis(alphas, cost_hist, dataset_title):
                           label=f'alpha={alphas[0, index]}',
                           linewidth=1,
                           fig=fig, subplot=subplot)
+        util.pause('Program paused. Press enter to continue.')
+        close_plot(fig)
+
+        fig, subplot = \
+            line_plot(alphas.transpose(), min_cost.transpose(),
+                      xlabel='alpha',
+                      ylabel='cost',
+                      marker='x', markersize=2,
+                      color='r',
+                      title=f'{dataset_title}\n Alphas Vs Cost',
+                      linewidth=2)
         util.pause('Program paused. Press enter to continue.')
         close_plot(fig)
 
