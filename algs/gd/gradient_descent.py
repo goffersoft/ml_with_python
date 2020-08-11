@@ -3,6 +3,7 @@
 
 """gradient descent - module."""
 
+from math import isclose
 import numpy as np
 
 try:
@@ -83,13 +84,13 @@ def gradient_descent_alphas(feature_matrix, output_colvec,
                              transform=transform, cost_func=cost_func,
                              debug=debug, debug_print=False)
         if debug:
-            tmp_cost = cost_hist[num_iters - 1, 0]
+            tmp_cost = np.min(cost_hist)
             cost_matrix[:, index:index + 1] = cost_hist
         else:
             tmp_cost = util.compute_cost(feature_matrix,
                                          output_colvec, num_examples,
                                          transform, cost_func)
-        if tmp_cost < optimal_cost:
+        if not isclose(tmp_cost, optimal_cost) and tmp_cost < optimal_cost:
             optimal_cost = tmp_cost
             optimal_alpha = alpha
             optimal_theta_colvec = theta_colvec
