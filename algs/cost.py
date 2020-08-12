@@ -23,6 +23,7 @@ def mean_squared_error(hypothesis_colvec, output_colvec, num_examples,
     """Compute mean squared error cost function."""
     cost_colvec = hypothesis_colvec - output_colvec
 
+    reg_value = 0
     if regularization_param:
         reg_value = get_regularization_value(num_examples,
                                              theta_colvec,
