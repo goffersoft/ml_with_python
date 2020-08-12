@@ -30,6 +30,7 @@ def gradient_descent_alphas(feature_matrix, output_colvec,
                             num_iters, theta_colvec=None,
                             alpha_range=None, num_alphas=None,
                             transform=identity, cost_func=mean_squared_error,
+                            regularization_param=0,
                             debug=False, debug_print=False):
     """Run Gradient Descent Algorithm.
 
@@ -82,6 +83,7 @@ def gradient_descent_alphas(feature_matrix, output_colvec,
                              theta_colvec=theta_colvec,
                              alpha=alpha, num_iters=num_iters,
                              transform=transform, cost_func=cost_func,
+                             regularization_param=regularization_param,
                              debug=debug, debug_print=False)
         if debug:
             tmp_cost = np.min(cost_hist)
@@ -89,7 +91,8 @@ def gradient_descent_alphas(feature_matrix, output_colvec,
         else:
             tmp_cost = util.compute_cost(feature_matrix,
                                          output_colvec, num_examples,
-                                         transform, cost_func)
+                                         transform, cost_func,
+                                         regularization_param)
         if not isclose(tmp_cost, optimal_cost) and tmp_cost < optimal_cost:
             optimal_cost = tmp_cost
             optimal_alpha = alpha
@@ -108,6 +111,7 @@ def gradient_descent_iterate_alphas(feature_matrix, output_colvec,
                                     alpha_range=None, num_alphas=None,
                                     transform=identity,
                                     cost_func=mean_squared_error,
+                                    regularization_param=0,
                                     debug=False, debug_print=False):
     """Run Gradient Descent Algorithm as a Iterator pattern.
 
@@ -148,6 +152,7 @@ def gradient_descent_iterate_alphas(feature_matrix, output_colvec,
                              theta_colvec=theta_colvec,
                              alpha=alpha, num_iters=num_iters,
                              transform=transform, cost_func=cost_func,
+                             regularization_param=regularization_param,
                              debug=debug, debug_print=False)
         yield theta_colvec, alpha, cost_hist
 
@@ -156,8 +161,8 @@ def gradient_descent(feature_matrix, output_colvec,
                      num_examples, num_features,
                      alpha, num_iters, theta_colvec=None,
                      transform=identity, cost_func=mean_squared_error,
-                     debug=False,
-                     debug_print=False):
+                     regularization_param=0,
+                     debug=False, debug_print=False):
     """Run Gradient Descent Algorithm once for a given alpha.
 
     returns the following :
@@ -191,12 +196,25 @@ def gradient_descent(feature_matrix, output_colvec,
         hypothesis_colvec = transform(feature_matrix @ theta_colvec)
         cost_colvec = hypothesis_colvec - output_colvec
         gradient = feature_matrix.transpose() @ cost_colvec
-        theta_colvec = theta_colvec - ((alpha*gradient)/num_examples)
+        adjust_theta = 1 - (alpha * regularization_param)/num_examples
+        tmp_theta = 0
+        if adjust_theta:
+            tmp_theta = theta_colvec[0, 0]
+
+        theta_colvec = theta_colvec * adjust_theta - \
+            ((alpha*gradient)/num_examples)
+
+        if adjust_theta:
+            theta_colvec[0, 0] = tmp_theta - \
+                ((alpha * gradient[0, 0])/num_examples)
+
         if debug:
             cost_hist[iter_num, 0] = \
                 util.compute_cost_given_hypothesis(hypothesis_colvec,
                                                    output_colvec, num_examples,
-                                                   cost_func)
+                                                   cost_func,
+                                                   regularization_param,
+                                                   theta_colvec)
 
     return theta_colvec, cost_hist
 

@@ -110,7 +110,8 @@ def run_logistic_regression(feature_matrix, output_colvec,
                             num_examples, num_features,
                             num_iters, fig, subplot,
                             theta_colvec=None, debug=False,
-                            uv_vals=None, degree=None):
+                            uv_vals=None, degree=None,
+                            regularization_param=0):
     """Run Logistic Regression Equation.
 
     1) num_examples - number of training samples
@@ -142,6 +143,7 @@ def run_logistic_regression(feature_matrix, output_colvec,
                                 num_iters, theta_colvec,
                                 transform=sigmoid,
                                 cost_func=cross_entropy,
+                                regularization_param=regularization_param,
                                 debug=debug, debug_print=debug)
     print(f'Theta found by gradient descent(alpha={alpha}, '
           f'cost={cost}) : {theta_colvec}')
@@ -236,7 +238,8 @@ def run_dataset(dataset_name, dataset_title,
                 label=None,
                 predict_func=None,
                 add_features=False,
-                degree=None):
+                degree=None,
+                regularization_param=0):
     """Run Logistic Regression."""
     _, feature_matrix, output_colvec, \
         num_examples, num_features, mu_rowvec, sigma_rowvec = \
@@ -266,7 +269,8 @@ def run_dataset(dataset_name, dataset_title,
                                 fig=fig, subplot=subplot,
                                 theta_colvec=None,
                                 debug=True,
-                                degree=degree)
+                                degree=degree,
+                                regularization_param=regularization_param)
 
     if predict_func:
         predict_func(theta_colvec, num_features,
@@ -291,13 +295,17 @@ def run():
                 predict_func=predict_dataset1)
 
     dataset = 'resources/data/microchip_test_dataset_118_3.txt'
-    run_dataset(dataset, print_data=True, normalize=True,
-                dataset_title='Logistic Regression - Microchip Test1 Dataset',
-                dataset_xlabel='Test1 Results',
-                dataset_ylabel='Test2 Results',
-                label=['Accepted', 'Rejected'],
-                predict_func=None,
-                add_features=True)
+    for reg_param in (0, 1, 10, 100):
+        run_dataset(dataset, print_data=True, normalize=True,
+                    dataset_title='Logistic Regression - '
+                                  'Microchip Test1 Dataset\n'
+                                  f'Regularization Param Value - {reg_param}',
+                    dataset_xlabel='Test1 Results',
+                    dataset_ylabel='Test2 Results',
+                    label=['Accepted', 'Rejected'],
+                    predict_func=None,
+                    add_features=True,
+                    regularization_param=reg_param)
 
 
 if __name__ == '__main__':

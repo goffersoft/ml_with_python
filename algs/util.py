@@ -114,7 +114,8 @@ def normalize_data(data_matrix):
 
 
 def compute_cost(feature_matrix, output_colvec, theta_colvec,
-                 transform_func, cost_func):
+                 transform_func, cost_func,
+                 reglarization_param=0):
     """Compute cost.
 
     feature_matrix = (num_examples  x num_features + 1)
@@ -135,12 +136,15 @@ def compute_cost(feature_matrix, output_colvec, theta_colvec,
     num_examples = np.shape(feature_matrix)[0]
     hypothesis_colvec = transform_func(feature_matrix @ theta_colvec)
 
-    return cost_func(hypothesis_colvec, output_colvec, num_examples)
+    return cost_func(hypothesis_colvec, output_colvec, num_examples,
+                     reglarization_param, theta_colvec)
 
 
 def compute_cost_given_hypothesis(hypothesis_colvec,
                                   output_colvec, num_examples,
-                                  cost_func):
+                                  cost_func,
+                                  reglarization_param=0,
+                                  theta_colvec=None):
     """Compute cost given hypothesis and the actual output.
 
     num_examples = number of training samples
@@ -148,7 +152,8 @@ def compute_cost_given_hypothesis(hypothesis_colvec,
     hypothesis_colvec = cost column vector - num_examples x 1 -
         cost associated with current values of theta
     """
-    return cost_func(hypothesis_colvec, output_colvec, num_examples)
+    return cost_func(hypothesis_colvec, output_colvec, num_examples,
+                     reglarization_param, theta_colvec)
 
 
 def add_features(feature1, feature2, degree):
