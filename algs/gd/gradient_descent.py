@@ -219,9 +219,17 @@ def gradient_descent(feature_matrix, output_colvec,
     return theta_colvec, cost_hist
 
 
-def normal_equation(feature_matrix, output_colvec):
+def normal_equation(feature_matrix, output_colvec,
+                    regularization_param=0):
     """Run Gradient Descent using the Normal Equation."""
     fm_transpose_fm = feature_matrix.transpose() @ feature_matrix
+
+    if regularization_param:
+        diag_matrix = np.diag(np.full(np.shape(feature_matrix)[1], 1))
+        diag_matrix[0, 0] = 0
+        fm_transpose_fm = fm_transpose_fm + \
+            regularization_param * diag_matrix
+
     fm_transpose_fm_pinv = np.linalg.pinv(fm_transpose_fm)
     fm_transpose_output_colvec = feature_matrix.transpose() @ output_colvec
 
@@ -298,4 +306,8 @@ if __name__ == '__main__':
     theta = \
         normal_equation(features, output)
     print(f'theta (Normal Equation)={theta}')
+    print(f'{"*" * 80}')
+    theta = \
+        normal_equation(features, output, 10)
+    print(f'theta (Normal Equation - regularization_param=10)={theta}')
     print(f'{"*" * 80}')
