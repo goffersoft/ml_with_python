@@ -4,7 +4,6 @@
 
 from pathlib import Path
 import numpy as np
-import matplotlib.cm as cm
 
 try:
     from .. import util
@@ -13,7 +12,10 @@ try:
     from ..plot import scatter_plot
     from ..plot import line_plot
     from ..plot import contour_plot
+    from ..plot import image_plot
     from ..plot import close_plot
+    from ..plot import get_markers
+    from ..plot import get_colors
     from ..gd.gradient_descent import gradient_descent_alphas
     from .logistic_regression import training_accuracy
 except ImportError:
@@ -31,15 +33,19 @@ except ImportError:
     from plot import scatter_plot
     from plot import line_plot
     from plot import contour_plot
+    from plot import image_plot
     from plot import close_plot
+    from plot import get_markers
+    from plot import get_colors
     from gd.gradient_descent import gradient_descent_alphas
     from logistic_regression import training_accuracy
 
 
-def load_data(dataset, normalize=False, print_data=False):
+def load_data(dataset, dataset_type='txt', normalize=False, print_data=False):
     """Get Data."""
     print(f'Loading Data from file... {dataset}')
-    data, nrows, ncols = util.get_data_as_matrix(dataset, Path(__file__))
+    data, nrows, ncols = util.get_data_as_matrix(dataset, Path(__file__),
+                                                 filetype=dataset_type)
 
     mu_rowvec = None
     sigma_rowvec = None
@@ -77,29 +83,44 @@ def load_data(dataset, normalize=False, print_data=False):
         nrows, ncols - 1, mu_rowvec, sigma_rowvec
 
 
-def plot_dataset(feature_matrix, output_colvec, num_features,
+def plot_dataset(feature_matrix, output_colvec,
                  dataset_title, dataset_xlabel='X', dataset_ylabel='Y',
-                 label=None):
+                 label=None, plot_image=False,
+                 img_size=None,
+                 num_images_per_row=None,
+                 num_images_per_col=None):
     """Plot data as a scatter diagram."""
     fig = None
     subplot = None
-    if num_features == 2:
-        print('Plotting Data ...')
-        fig, subplot = \
-            scatter_plot(feature_matrix[(output_colvec == 1).nonzero(), 1],
-                         feature_matrix[(output_colvec == 1).nonzero(), 2],
-                         xlabel=dataset_xlabel,
-                         ylabel=dataset_ylabel,
-                         title=dataset_title,
-                         marker='.', color='black',
-                         label=label[0],
-                         linewidths=None)
+    print('Plotting Data ...')
+    yvals = np.unique(output_colvec)
+    markers = get_markers(len(yvals))
+    colors = get_colors(len(yvals))
+    if plot_image:
+        random_rows = np.random.randint(0, len(output_colvec),
+                                        num_images_per_row *
+                                        num_images_per_col)
 
-        scatter_plot(feature_matrix[(output_colvec == 0).nonzero(), 1],
-                     feature_matrix[(output_colvec == 0).nonzero(), 2],
-                     marker='+', color='y', linewidths=None,
-                     label=label[1],
-                     fig=fig, subplot=subplot)
+        def get_img(index):
+            return np.reshape(feature_matrix[random_rows[index], 0:-1],
+                              newshape=img_size)
+
+        fig, subplot = image_plot(num_images_per_row,
+                                  num_images_per_col, get_img)
+    else:
+        for index, yval in enumerate(yvals):
+            fig, subplot = \
+                scatter_plot(feature_matrix[(output_colvec == yval).
+                                            nonzero(), 1],
+                             feature_matrix[
+                                 (output_colvec == yval).nonzero(), 2],
+                             xlabel=dataset_xlabel,
+                             ylabel=dataset_ylabel,
+                             title=dataset_title,
+                             marker=markers[index], color=colors[index],
+                             label=label[index],
+                             linewidths=None,
+                             fig=fig, subplot=subplot)
 
     util.pause('Program paused. Press enter to continue.\n')
 
@@ -112,7 +133,7 @@ def run_logistic_regression(feature_matrix, output_colvec,
                             theta_colvec=None, debug=False,
                             uv_vals=None, degree=None,
                             regularization_param=0):
-    """Run Logistic Regression Equation.
+    """Run Logistic Regression.
 
     1) num_examples - number of training samples
     2) num_features - number of features
@@ -202,7 +223,7 @@ def run_cost_analysis(alphas, cost_hist, dataset_title):
     if cost_hist is not None:
         fig = None
         subplot = None
-        colors = cm.rainbow(np.linspace(0, 1, np.shape(alphas)[1]))
+        colors = get_colors(np.shape(alphas)[1])
         for index in range(0, np.shape(alphas)[1]):
             min_cost[0, index] = np.min(cost_hist[:, index])
             fig, subplot = \
@@ -232,24 +253,47 @@ def run_cost_analysis(alphas, cost_hist, dataset_title):
         close_plot(fig)
 
 
-def run_dataset(dataset_name, dataset_title,
+def run_mcc_dataset(dataset_name, dataset_type, dataset_title,
+                    dataset_xlabel='X', dataset_ylabel='Y',
+                    label=None, normalize=False, print_data=False,
+                    plot_image=False, image_size=None,
+                    num_images_per_row=None, num_images_per_col=None):
+    """Run Logistic Regression For multi class classification problem."""
+    _, feature_matrix, output_colvec, \
+        _, _, _, _ = \
+        load_data(dataset_name, dataset_type, normalize, print_data)
+
+    fig, _ = \
+        plot_dataset(feature_matrix, output_colvec,
+                     dataset_title, dataset_xlabel,
+                     dataset_ylabel, label,
+                     plot_image, image_size,
+                     num_images_per_row, num_images_per_col)
+
+    close_plot(fig)
+
+
+def run_dataset(dataset_name, dataset_title, dataset_type='txt',
                 dataset_xlabel='X', dataset_ylabel='Y',
                 normalize=False, print_data=False,
                 label=None,
                 predict_func=None,
                 add_features=False,
                 degree=None,
-                regularization_param=0):
-    """Run Logistic Regression."""
+                regularization_param=0,
+                plot_image=False, image_size=None,
+                num_images_per_row=None, num_images_per_col=None):
+    """Run Logistic Regression For single class classification problem."""
     _, feature_matrix, output_colvec, \
         num_examples, num_features, mu_rowvec, sigma_rowvec = \
-        load_data(dataset_name, normalize, print_data)
+        load_data(dataset_name, dataset_type, normalize, print_data)
 
     fig, subplot = \
         plot_dataset(feature_matrix, output_colvec,
-                     num_features,
                      dataset_title, dataset_xlabel,
-                     dataset_ylabel, label)
+                     dataset_ylabel, label,
+                     plot_image, image_size,
+                     num_images_per_row, num_images_per_col)
 
     if add_features and np.shape(feature_matrix)[1] >= 2:
         if not degree:
@@ -283,6 +327,8 @@ def run_dataset(dataset_name, dataset_title,
 
     run_cost_analysis(alphas, cost_hist, dataset_title)
 
+    close_plot(fig)
+
 
 def run():
     """Run Logistic Regression against various datasets."""
@@ -291,7 +337,7 @@ def run():
                 dataset_title='Logistic Regression - Exam Dataset',
                 dataset_xlabel='Exam1 Score',
                 dataset_ylabel='Exam2 Score',
-                label=['Admitted', 'Not Admitted'],
+                label=['Not Admitted', 'Admitted'],
                 predict_func=predict_dataset1)
 
     dataset = 'resources/data/microchip_test_dataset_118_3.txt'
@@ -302,10 +348,18 @@ def run():
                                   f'Regularization Param Value - {reg_param}',
                     dataset_xlabel='Test1 Results',
                     dataset_ylabel='Test2 Results',
-                    label=['Accepted', 'Rejected'],
+                    label=['Rejected', 'Accepted'],
                     predict_func=None,
                     add_features=True,
                     regularization_param=reg_param)
+
+    dataset = 'resources/data/handwritten_digits_5000_400.mat'
+    run_mcc_dataset(dataset, dataset_type='mat',
+                    print_data=False, normalize=False,
+                    dataset_title='Logistic Regression (Multi Class) -'
+                                  'Handwritten Digits Dataset',
+                    plot_image=True, image_size=(20, 20),
+                    num_images_per_row=10, num_images_per_col=10)
 
 
 if __name__ == '__main__':
