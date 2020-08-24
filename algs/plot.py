@@ -4,6 +4,8 @@
 """plotdata - module."""
 
 from matplotlib import pyplot as plt
+from matplotlib.markers import MarkerStyle
+import matplotlib.cm as cm
 import numpy as np
 
 
@@ -25,6 +27,25 @@ def is_interactive_mode_enabled():
 def close_plot(fig=None):
     """Close plot."""
     plt.close(fig)
+
+
+def get_colors(size, start_val=0, end_val=1):
+    """Get some random colors."""
+    return cm.rainbow(np.linspace(start_val, end_val, size))
+
+
+def get_markers(size=None):
+    """Get valid markers for scatter plots."""
+    valid_markers = tuple(MarkerStyle.markers.keys())
+    if not size:
+        return valid_markers
+
+    marker_list = [None] * size
+    rand_indexes = np.random.randint(len(valid_markers), size=size)
+    for index, marker_index in enumerate(rand_indexes):
+        marker_list[index] = valid_markers[marker_index]
+
+    return marker_list
 
 
 def set_plot_attributes(xlabel=None, ylabel=None,
@@ -316,6 +337,19 @@ def surface_plot(xaxis_data, yaxis_data, compute_zaxis_data_func,
                          rcount=nrows, ccount=ncols)
 
     return fig, subplot
+
+
+def image_plot(nrows, ncols, img_func, figsize=(5, 5), cmap='gray'):
+    """Display (nrows * ncols) number of images as a grid."""
+    fig, subplots = plt.subplots(nrows, ncols, figsize=figsize,
+                                 squeeze=True, sharex='col',
+                                 sharey='row')
+    for index, subplot in enumerate(subplots.flat):
+        subplot.imshow(img_func(index), cmap=cmap)
+
+    fig.show()
+
+    return fig, subplots
 
 
 if __name__ == '__main__':
