@@ -5,6 +5,7 @@
 
 from pathlib import Path
 import numpy as np
+import scipy.io as scipyio
 
 try:
     from .transform import identity
@@ -49,17 +50,26 @@ def get_file_path(path, caller_path=None):
     return None, f'Invalid path name : {path}'
 
 
-def get_data_as_matrix(path, caller_path=None, delimiter=','):
+def get_data_as_matrix(path, caller_path,
+                       feature_matrix_label='X',
+                       output_colvec_label='y',
+                       delimiter=',', filetype='txt'):
     """Read data from a file and return as a numpy ndarray."""
     file_path, err = \
         get_file_path(path, caller_path)
     if err:
         raise FileNotFoundError(err)
 
-    dataset = np.loadtxt(file_path, delimiter=delimiter)
+    if filetype == 'mat':
+        matlab_dict = scipyio.loadmat(file_path)
+        dataset = matlab_dict[feature_matrix_label]
+        dataset = np.append(matlab_dict[feature_matrix_label],
+                            matlab_dict[output_colvec_label],
+                            axis=1)
+    else:
+        dataset = np.loadtxt(file_path, delimiter=delimiter)
 
     nrows, ncols = np.shape(dataset)
-
     return dataset, nrows, ncols
 
 
